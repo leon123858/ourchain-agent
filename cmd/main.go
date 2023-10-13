@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+
 	model "github.com/leon123858/go-aid/utils/modal"
 	util "github.com/leon123858/go-aid/utils/mongo"
 	"github.com/leon123858/go-aid/utils/repository"
@@ -34,7 +35,6 @@ func main() {
 	})
 	e.GET("/get/todo", func(ctx echo.Context) error {
 		aid := ctx.QueryParam("aid")
-		println(aid)
 		if todoList, err := repository.GetTodoList(db, aid); err != nil {
 			return ctx.JSON(http.StatusInternalServerError, map[string]interface{}{
 				"result": "fail",
