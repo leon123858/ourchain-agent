@@ -44,7 +44,7 @@ func GetTodoList(db *mongo.Database, aid string) (*[]model.Todo, error) {
 }
 
 func CheckTodo(db *mongo.Database, _id string, isChecked bool) error {
-	// check todo by id
+	// check todoItem by id
 	objId, err := primitive.ObjectIDFromHex(_id)
 	if err != nil {
 		return err

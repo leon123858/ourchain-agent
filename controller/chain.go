@@ -89,7 +89,7 @@ func GenerateChainPostController(chain *our_chain_rpc.Bitcoind, which string) ec
 				"data":   blockIds,
 			})
 		}
-	case "DumpContractMessage":
+	case "dumpContractMessage":
 		return func(ctx echo.Context) error {
 			req := new(model.ContractRequest)
 			err := ctx.Bind(&req)
@@ -106,6 +106,63 @@ func GenerateChainPostController(chain *our_chain_rpc.Bitcoind, which string) ec
 			return ctx.JSON(http.StatusOK, map[string]interface{}{
 				"result": "success",
 				"data":   message,
+			})
+		}
+	case "createRawTransaction":
+		return func(ctx echo.Context) error {
+			req := new(model.RawTransactionRequest)
+			err := ctx.Bind(&req)
+			if err != nil {
+				return err
+			}
+			result, err := chain.CreateRawTransaction(req.Inputs, req.Outputs, req.Contract)
+			if err != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]interface{}{
+					"result": "fail",
+					"error":  err.Error(),
+				})
+			}
+			return ctx.JSON(http.StatusOK, map[string]interface{}{
+				"result": "success",
+				"data":   result,
+			})
+		}
+	case "signRawTransaction":
+		return func(ctx echo.Context) error {
+			req := new(model.SignRequest)
+			err := ctx.Bind(&req)
+			if err != nil {
+				return err
+			}
+			result, err := chain.SignRawTransaction(req.RawTransaction, req.PrivateKey)
+			if err != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]interface{}{
+					"result": "fail",
+					"error":  err.Error(),
+				})
+			}
+			return ctx.JSON(http.StatusOK, map[string]interface{}{
+				"result": "success",
+				"data":   result,
+			})
+		}
+	case "sendRawTransaction":
+		return func(ctx echo.Context) error {
+			req := new(model.SendRequest)
+			err := ctx.Bind(&req)
+			if err != nil {
+				return err
+			}
+			result, err := chain.SendRawTransaction(req.RawTransaction)
+			if err != nil {
+				return ctx.JSON(http.StatusInternalServerError, map[string]interface{}{
+					"result": "fail",
+					"error":  err.Error(),
+				})
+			}
+			return ctx.JSON(http.StatusOK, map[string]interface{}{
+				"result": "success",
+				"data":   result,
 			})
 		}
 	default:

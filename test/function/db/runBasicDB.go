@@ -14,7 +14,7 @@ import (
 func main() {
 	db := util.GetMgoCli().Database("todo")
 	aid := uuid.New().String()
-	// create a todo
+	// create
 	iResult, err := db.Collection("todo").InsertOne(context.TODO(), model.Todo{
 		Aid:       aid,
 		Title:     "title",
@@ -27,7 +27,7 @@ func main() {
 	id := iResult.InsertedID.(primitive.ObjectID)
 	fmt.Println("_id", id.Hex())
 
-	// check a todo
+	// check
 	objId, err := primitive.ObjectIDFromHex(id.Hex())
 	if err != nil {
 		fmt.Println(err)
@@ -65,7 +65,7 @@ func main() {
 		return
 	}
 
-	// delete a todo
+	// delete
 	objId, err = primitive.ObjectIDFromHex(id.Hex())
 	if err != nil {
 		fmt.Println(err)
