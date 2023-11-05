@@ -1,0 +1,18 @@
+GET http://localhost:8080/get/balance
+Accept: application/json
+
+###
+GET http://localhost:8080/get/balance?address=myoCGvSYrn1jQQadv99ZZ2hhoREdAYPGHP
+Accept: application/json
+
+###
+GET http://localhost:8080/get/utxo
+Accept: application/json
+
+###
+GET http://localhost:8080/get/privateKey?address=myoCGvSYrn1jQQadv99ZZ2hhoREdAYPGHP
+Accept: application/json
+
+###
+GET http://localhost:8080/get/transaction?txid=myoCGvSYrn1jQQadv99ZZ2hhoREdAYPGHP
+Accept: application/json

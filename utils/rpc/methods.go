@@ -10,13 +10,52 @@ import (
 
 // GetBalance return the balance of the server or of a specific account
 // If [account] is "", returns the server's total available balance.
-// If [account] is specified, returns the balance in the account
+// If [minconf] is min confirm for coin should be counted.
 func (b *Bitcoind) GetBalance(account string, minconf uint64) (balance float64, err error) {
 	r, err := b.client.call("getbalance", []interface{}{account, minconf})
 	if err = handleError(err, &r); err != nil {
 		return
 	}
 	balance, err = strconv.ParseFloat(string(r.Result), 64)
+	return
+}
+
+// GetTransaction get a transaction in the ourChain, return the transaction.
+// txid is the id of the transaction.
+func (b *Bitcoind) GetTransaction(txid string) (result Transaction, err error) {
+	rpcResponse, err := b.client.call("gettransaction", []interface{}{txid})
+	if err = handleError(err, &rpcResponse); err != nil {
+		return
+	}
+	err = json.Unmarshal(rpcResponse.Result, &result)
+	if err != nil {
+		return
+	}
+	return
+}
+
+// ListUnspent return the unspent transaction output of the node
+func (b *Bitcoind) ListUnspent() (result []Unspent, err error) {
+	rpcResponse, err := b.client.call("listunspent", []interface{}{})
+	if err = handleError(err, &rpcResponse); err != nil {
+		return []Unspent{}, err
+	}
+	// convert []byte to json
+	err = json.Unmarshal(rpcResponse.Result, &result)
+	if err != nil {
+		return []Unspent{}, err
+	}
+	return result, nil
+}
+
+// DumpPrivKey dump the private key of the address in the ourChain, return the private key.
+// address is the address of the private key.
+func (b *Bitcoind) DumpPrivKey(address string) (result string, err error) {
+	rpcResponse, err := b.client.call("dumpprivkey", []interface{}{address})
+	if err = handleError(err, &rpcResponse); err != nil {
+		return "", err
+	}
+	result = strings.Trim(string(rpcResponse.Result), "\"")
 	return
 }
 
@@ -90,20 +129,6 @@ func (b *Bitcoind) GenerateBlock(count uint64) (blockHash []string, err error) {
 	return result, nil
 }
 
-// ListUnspent return the unspent transaction output of the node
-func (b *Bitcoind) ListUnspent() (result []Unspent, err error) {
-	rpcResponse, err := b.client.call("listunspent", []interface{}{})
-	if err = handleError(err, &rpcResponse); err != nil {
-		return []Unspent{}, err
-	}
-	// convert []byte to json
-	err = json.Unmarshal(rpcResponse.Result, &result)
-	if err != nil {
-		return []Unspent{}, err
-	}
-	return result, nil
-}
-
 // CreateRawTransaction create a raw transaction in the ourChain, return the raw transaction.
 // input is the input of the transaction.
 // output is the output of the transaction.
@@ -137,17 +162,6 @@ func (b *Bitcoind) SignRawTransaction(rawTx string, privateKey string) (result S
 	return
 }
 
-// DumpPrivKey dump the private key of the address in the ourChain, return the private key.
-// address is the address of the private key.
-func (b *Bitcoind) DumpPrivKey(address string) (result string, err error) {
-	rpcResponse, err := b.client.call("dumpprivkey", []interface{}{address})
-	if err = handleError(err, &rpcResponse); err != nil {
-		return "", err
-	}
-	result = strings.Trim(string(rpcResponse.Result), "\"")
-	return
-}
-
 // SendRawTransaction send a signed raw transaction in the ourChain, return the transaction id.
 // rawTx is the signed raw transaction.
 // return the transaction id.
@@ -157,19 +171,5 @@ func (b *Bitcoind) SendRawTransaction(rawTx string) (result string, err error) {
 		return "", err
 	}
 	result = strings.Trim(string(rpcResponse.Result), "\"")
-	return
-}
-
-// GetTransaction get a transaction in the ourChain, return the transaction.
-// txid is the id of the transaction.
-func (b *Bitcoind) GetTransaction(txid string) (result Transaction, err error) {
-	rpcResponse, err := b.client.call("gettransaction", []interface{}{txid})
-	if err = handleError(err, &rpcResponse); err != nil {
-		return
-	}
-	err = json.Unmarshal(rpcResponse.Result, &result)
-	if err != nil {
-		return
-	}
 	return
 }
