@@ -1,5 +1,5 @@
 all:
-	go run test/function/raw/main.go
+	make start
 
 start:
 	go fmt ./...
