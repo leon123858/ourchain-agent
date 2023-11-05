@@ -3,7 +3,9 @@ package our_chain_rpc
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
+	"strings"
 )
 
 // GetBalance return the balance of the server or of a specific account
@@ -48,7 +50,7 @@ func (b *Bitcoind) CallContract(contractAddress string, contractData []string) (
 	if err = handleError(err, &rpcResponse); err != nil {
 		return "", err
 	}
-	result = string(rpcResponse.Result)
+	result = strings.Trim(string(rpcResponse.Result), "\"")
 	return result, nil
 }
 
@@ -65,7 +67,7 @@ func (b *Bitcoind) DumpContractMessage(contractAddress string, contractData []st
 	if err = handleError(err, &rpcResponse); err != nil {
 		return "", err
 	}
-	result = string(rpcResponse.Result)
+	result = strings.Trim(string(rpcResponse.Result), "\"")
 	return result, nil
 }
 
@@ -86,4 +88,88 @@ func (b *Bitcoind) GenerateBlock(count uint64) (blockHash []string, err error) {
 		return []string{}, err
 	}
 	return result, nil
+}
+
+// ListUnspent return the unspent transaction output of the node
+func (b *Bitcoind) ListUnspent() (result []Unspent, err error) {
+	rpcResponse, err := b.client.call("listunspent", []interface{}{})
+	if err = handleError(err, &rpcResponse); err != nil {
+		return []Unspent{}, err
+	}
+	// convert []byte to json
+	err = json.Unmarshal(rpcResponse.Result, &result)
+	if err != nil {
+		return []Unspent{}, err
+	}
+	return result, nil
+}
+
+// CreateRawTransaction create a raw transaction in the ourChain, return the raw transaction.
+// input is the input of the transaction.
+// output is the output of the transaction.
+func (b *Bitcoind) CreateRawTransaction(input []TxInput, output []TxOutput, contract ContractMessage) (result RawTransactionCreateResult, err error) {
+	// create a  map like {"address": "amount"}
+	outputMap := make(map[string]string)
+	outputMap[output[0].Address] = fmt.Sprintf("%.8f", output[0].Amount)
+	rpcResponse, err := b.client.call("createrawtransaction", []interface{}{input, outputMap, contract})
+	if err = handleError(err, &rpcResponse); err != nil {
+		return
+	}
+	// convert []byte to json
+	err = json.Unmarshal(rpcResponse.Result, &result)
+	if err != nil {
+		return
+	}
+	return
+}
+
+// SignRawTransaction sign a raw transaction in the ourChain, return the signed transaction.
+// rawTx is the raw transaction.
+func (b *Bitcoind) SignRawTransaction(rawTx string, privateKey string) (result SignedTx, err error) {
+	rpcResponse, err := b.client.call("signrawtransaction", []interface{}{rawTx, []interface{}{}, []interface{}{privateKey}})
+	if err = handleError(err, &rpcResponse); err != nil {
+		return
+	}
+	err = json.Unmarshal(rpcResponse.Result, &result)
+	if err != nil {
+		return
+	}
+	return
+}
+
+// DumpPrivKey dump the private key of the address in the ourChain, return the private key.
+// address is the address of the private key.
+func (b *Bitcoind) DumpPrivKey(address string) (result string, err error) {
+	rpcResponse, err := b.client.call("dumpprivkey", []interface{}{address})
+	if err = handleError(err, &rpcResponse); err != nil {
+		return "", err
+	}
+	result = strings.Trim(string(rpcResponse.Result), "\"")
+	return
+}
+
+// SendRawTransaction send a signed raw transaction in the ourChain, return the transaction id.
+// rawTx is the signed raw transaction.
+// return the transaction id.
+func (b *Bitcoind) SendRawTransaction(rawTx string) (result string, err error) {
+	rpcResponse, err := b.client.call("sendrawtransaction", []interface{}{rawTx})
+	if err = handleError(err, &rpcResponse); err != nil {
+		return "", err
+	}
+	result = strings.Trim(string(rpcResponse.Result), "\"")
+	return
+}
+
+// GetTransaction get a transaction in the ourChain, return the transaction.
+// txid is the id of the transaction.
+func (b *Bitcoind) GetTransaction(txid string) (result Transaction, err error) {
+	rpcResponse, err := b.client.call("gettransaction", []interface{}{txid})
+	if err = handleError(err, &rpcResponse); err != nil {
+		return
+	}
+	err = json.Unmarshal(rpcResponse.Result, &result)
+	if err != nil {
+		return
+	}
+	return
 }

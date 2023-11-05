@@ -1,5 +1,5 @@
 all:
-	make start
+	go run test/function/raw/main.go
 
 start:
 	go fmt ./...
@@ -12,8 +12,9 @@ build:
 function_test:
 	go fmt ./...
 	go run test/function/contract/runBasicContract.go
-	go run test/function/db/runBasicDB.go
-	go run test/function/controller/main.go
+	#go run test/function/db/runBasicDB.go
+	#go run test/function/controller/main.go
+	go run test/function/raw/main.go
 
 doc:
 	echo "goto: http://localhost:3000/github.com/leon123858/go-aid"

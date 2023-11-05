@@ -16,7 +16,10 @@ func main() {
 	} else {
 		// print the response body to string
 		buf := new(bytes.Buffer)
-		buf.ReadFrom(res.Body)
+		_, err := buf.ReadFrom(res.Body)
+		if err != nil {
+			return
+		}
 		fmt.Println(buf.String())
 	}
 	// try get request to get all todo items
@@ -26,7 +29,10 @@ func main() {
 	} else {
 		// print the response body to string
 		buf := new(bytes.Buffer)
-		buf.ReadFrom(res.Body)
+		_, err := buf.ReadFrom(res.Body)
+		if err != nil {
+			return
+		}
 		fmt.Println(buf.String())
 	}
 	// try post request to update a todo item
@@ -36,7 +42,10 @@ func main() {
 	} else {
 		// print the response body to string
 		buf := new(bytes.Buffer)
-		buf.ReadFrom(res.Body)
+		_, err := buf.ReadFrom(res.Body)
+		if err != nil {
+			return
+		}
 		fmt.Println(buf.String())
 	}
 	// try post request to delete a todo item
@@ -46,7 +55,11 @@ func main() {
 	} else {
 		// print the response body to string
 		buf := new(bytes.Buffer)
-		buf.ReadFrom(res.Body)
+		_, err := buf.ReadFrom(res.Body)
+		if err != nil {
+			return
+		}
 		fmt.Println(buf.String())
 	}
+
 }
