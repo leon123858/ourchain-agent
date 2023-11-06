@@ -1,14 +1,14 @@
 package main
 
 import (
-	ourChain "github.com/leon123858/go-aid/repository/rpc"
+	"github.com/leon123858/go-aid/service/rpc"
 	"github.com/leon123858/go-aid/utils"
 	"log"
 )
 
 func main() {
 	utils.LoadConfig()
-	chain, err := ourChain.New(
+	chain, err := our_chain_rpc.New(
 		utils.OurChainConfigInstance.ServerHost,
 		utils.OurChainConfigInstance.ServerPort,
 		utils.OurChainConfigInstance.User,
@@ -31,7 +31,7 @@ func main() {
 		log.Fatal(err)
 	}
 	fee := 0.001
-	var unspent ourChain.Unspent
+	var unspent our_chain_rpc.Unspent
 	for _, item := range unspentList {
 		if item.Amount > fee {
 			unspent = item
@@ -42,17 +42,17 @@ func main() {
 	log.Printf("Unspent: %v", targetUtxo.Amount)
 
 	// Create raw transaction
-	inputs := []ourChain.TxInput{{
+	inputs := []our_chain_rpc.TxInput{{
 		Txid: targetUtxo.Txid,
 		Vout: targetUtxo.Vout,
 	}}
-	outputs := []ourChain.TxOutput{{
+	outputs := []our_chain_rpc.TxOutput{{
 		Address: targetUtxo.Address,
 		Amount:  targetUtxo.Amount - fee,
 	}}
-	println("Contract Action", ourChain.ContractNotExist, ourChain.ContractActionDeploy, ourChain.ContractActionCall)
-	contract := ourChain.ContractMessage{
-		Action:  ourChain.ContractActionDeploy,
+	println("Contract Action", our_chain_rpc.ContractNotExist, our_chain_rpc.ContractActionDeploy, our_chain_rpc.ContractActionCall)
+	contract := our_chain_rpc.ContractMessage{
+		Action:  our_chain_rpc.ContractActionDeploy,
 		Code:    "#include <ourcontract.h>\n#include <iostream>\n#include <json.hpp>\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n#include <sys/wait.h>\n#include <unistd.h>\n\nusing json = nlohmann::json;\n\nextern \"C\" int contract_main(int argc, char **argv) {\n  // try state\n  std::string* buf = state_read();\n  if (buf != nullptr) {\n    std::cerr << \"get state: \" << buf->c_str() << std::endl;\n    // some operation\n    json j = j.parse(*buf);\n    j.push_back(\"more click: \" + std::to_string((size_t)j.size()));\n    std::string* newBuf = new std::string(j.dump());\n    int ret = state_write(newBuf);\n    if (ret < 0) {\n     std::cerr << \"send state error\" << newBuf->c_str() << std::endl;\n    }\n    // release resource\n    delete buf;\n    delete newBuf;\n    return 0;\n  }\n  // init state\n  std::cerr << \"read state error\" << std::endl;\n  json j;\n  j.push_back(\"baby cute\");\n  j.push_back(1);\n  j.push_back(true);\n  std::string* newBuf = new std::string(j.dump());\n  std::cerr << \"buf:\" << newBuf->c_str() << std::endl;\n  int ret = state_write(newBuf);\n  if (ret < 0) {\n    std::cerr << \"send state error\" << newBuf->c_str() << std::endl;\n  }\n  delete newBuf;\n  return 0;\n}",
 		Address: "",
 		Args:    []string{},

@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
-	ourChain "github.com/leon123858/go-aid/repository/rpc"
+	ourChain "github.com/leon123858/go-aid/service/rpc"
 	"log"
 
 	"github.com/leon123858/go-aid/controller"

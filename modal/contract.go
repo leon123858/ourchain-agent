@@ -1,7 +1,7 @@
 package model
 
 import (
-	chain "github.com/leon123858/go-aid/repository/rpc"
+	chain "github.com/leon123858/go-aid/service/rpc"
 )
 
 type ContractRequest struct {

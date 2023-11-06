@@ -1,7 +1,7 @@
 package main
 
 import (
-	ourChain "github.com/leon123858/go-aid/repository/rpc"
+	ourChain "github.com/leon123858/go-aid/service/rpc"
 	"github.com/leon123858/go-aid/utils"
 	"log"
 )
