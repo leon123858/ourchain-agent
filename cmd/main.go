@@ -1,13 +1,12 @@
 package main
 
 import (
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	ourChain "github.com/leon123858/go-aid/service/rpc"
 	"log"
 
 	"github.com/leon123858/go-aid/controller"
-
 	"github.com/leon123858/go-aid/utils"
 )
 
@@ -24,7 +23,10 @@ func main() {
 	}
 
 	e := echo.New()
-	e.Use(middleware.Logger())
+
+	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+		Format: "method=${method}, uri=${uri}, status=${status}\n",
+	}))
 	e.Use(middleware.CORS())
 
 	getGroup := e.Group("/get")

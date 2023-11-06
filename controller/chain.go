@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/leon123858/go-aid/modal"
 	"github.com/leon123858/go-aid/service/rpc"
 	"net/http"

@@ -20,11 +20,8 @@ doc:
 	echo "goto: http://localhost:3000/github.com/leon123858/go-aid"
 	pkgsite -http "localhost:3000"
 
-uml:
-	echo "should install `go install github.com/jfeliu007/goplantuml/cmd/goplantuml@latest` first"
-	echo "preview in: https://www.plantuml.com/"
-	echo "tool git url: https://github.com/jfeliu007/goplantuml"
-	goplantuml -recursive ./ > UML.puml
+swag:
+	swag fmt && cd cmd && swag init
 
 clean:
 	go clean
