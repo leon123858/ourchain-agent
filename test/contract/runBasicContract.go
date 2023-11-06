@@ -1,28 +1,25 @@
 package main
 
 import (
+	ourChain "github.com/leon123858/go-aid/repository/rpc"
+	"github.com/leon123858/go-aid/utils"
 	"log"
-
-	ourChain "github.com/leon123858/go-aid/utils/rpc"
-)
-
-const (
-	SERVER_HOST       = "127.0.0.1"
-	SERVER_PORT       = 8332
-	USER              = "test"
-	PASSWD            = "test"
-	USESSL            = false
-	WALLET_PASSPHRASE = "WalletPassphrase"
 )
 
 func main() {
-	ourChain, err := ourChain.New(SERVER_HOST, SERVER_PORT, USER, PASSWD, USESSL)
+	utils.LoadConfig()
+	chain, err := ourChain.New(
+		utils.OurChainConfigInstance.ServerHost,
+		utils.OurChainConfigInstance.ServerPort,
+		utils.OurChainConfigInstance.User,
+		utils.OurChainConfigInstance.Passwd,
+		utils.OurChainConfigInstance.UseSsl)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Get balance
-	balance, err := ourChain.GetBalance("", 1)
+	balance, err := chain.GetBalance("", 1)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -30,14 +27,14 @@ func main() {
 
 	// Deploy contract
 	contractPath := "/root/Desktop/ourchain/sample.cpp"
-	address, err := ourChain.DeployContract(contractPath)
+	address, err := chain.DeployContract(contractPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Printf("Contract address: %s", address)
 
 	// Generate block
-	blockHash, err := ourChain.GenerateBlock(1)
+	blockHash, err := chain.GenerateBlock(1)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -46,13 +43,13 @@ func main() {
 	}
 
 	// Call contract
-	_, err = ourChain.CallContract(address, []string{})
+	_, err = chain.CallContract(address, []string{})
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Generate block
-	blockHash, err = ourChain.GenerateBlock(1)
+	blockHash, err = chain.GenerateBlock(1)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -61,7 +58,7 @@ func main() {
 	}
 
 	// Dump contract message
-	message, err := ourChain.DumpContractMessage(address, []string{})
+	message, err := chain.DumpContractMessage(address, []string{})
 	if err != nil {
 		log.Fatal(err)
 	}

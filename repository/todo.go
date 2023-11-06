@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 	"fmt"
+	"github.com/leon123858/go-aid/modal"
 
-	model "github.com/leon123858/go-aid/utils/modal"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"

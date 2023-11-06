@@ -1,0 +1,5 @@
+serverHost="127.0.0.1"
+serverPort=8332
+useSsl=false
+user="test"
+passwd="test"

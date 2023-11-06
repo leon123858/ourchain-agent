@@ -3,15 +3,17 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/leon123858/go-aid/modal"
+	"github.com/leon123858/go-aid/repository/mongo"
+	"github.com/leon123858/go-aid/utils"
 
 	"github.com/google/uuid"
-	model "github.com/leon123858/go-aid/utils/modal"
-	util "github.com/leon123858/go-aid/utils/mongo"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func main() {
+	utils.LoadConfig()
 	db := util.GetMgoCli().Database("todo")
 	aid := uuid.New().String()
 	// create

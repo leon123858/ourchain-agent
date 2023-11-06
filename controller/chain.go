@@ -2,8 +2,8 @@ package controller
 
 import (
 	"github.com/labstack/echo"
-	model "github.com/leon123858/go-aid/utils/modal"
-	our_chain_rpc "github.com/leon123858/go-aid/utils/rpc"
+	"github.com/leon123858/go-aid/modal"
+	"github.com/leon123858/go-aid/repository/rpc"
 	"net/http"
 )
 

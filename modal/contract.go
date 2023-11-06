@@ -1,6 +1,8 @@
 package model
 
-import chain "github.com/leon123858/go-aid/utils/rpc"
+import (
+	chain "github.com/leon123858/go-aid/repository/rpc"
+)
 
 type ContractRequest struct {
 	Address   string   `json:"address"`

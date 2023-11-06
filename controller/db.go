@@ -2,8 +2,8 @@ package controller
 
 import (
 	"github.com/labstack/echo"
-	model "github.com/leon123858/go-aid/utils/modal"
-	"github.com/leon123858/go-aid/utils/repository"
+	"github.com/leon123858/go-aid/modal"
+	"github.com/leon123858/go-aid/repository"
 	"go.mongodb.org/mongo-driver/mongo"
 	"net/http"
 )

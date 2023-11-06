@@ -1,21 +1,19 @@
 package main
 
 import (
-	ourChain "github.com/leon123858/go-aid/utils/rpc"
+	ourChain "github.com/leon123858/go-aid/repository/rpc"
+	"github.com/leon123858/go-aid/utils"
 	"log"
 )
 
-const (
-	SERVER_HOST = "127.0.0.1"
-	SERVER_PORT = 8332
-	USER        = "test"
-	PASSWD      = "test"
-	USESSL      = false
-	//WALLET_PASSPHRASE = "WalletPassphrase"
-)
-
 func main() {
-	chain, err := ourChain.New(SERVER_HOST, SERVER_PORT, USER, PASSWD, USESSL)
+	utils.LoadConfig()
+	chain, err := ourChain.New(
+		utils.OurChainConfigInstance.ServerHost,
+		utils.OurChainConfigInstance.ServerPort,
+		utils.OurChainConfigInstance.User,
+		utils.OurChainConfigInstance.Passwd,
+		utils.OurChainConfigInstance.UseSsl)
 	if err != nil {
 		log.Fatal(err)
 	}

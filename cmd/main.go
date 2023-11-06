@@ -3,23 +3,22 @@ package main
 import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	ourChain "github.com/leon123858/go-aid/repository/rpc"
 	"log"
 
 	"github.com/leon123858/go-aid/controller"
-	ourChain "github.com/leon123858/go-aid/utils/rpc"
-)
 
-const (
-	SERVER_HOST = "127.0.0.1"
-	SERVER_PORT = 8332
-	USER        = "test"
-	PASSWD      = "test"
-	USESSL      = false
-	//WALLET_PASSPHRASE = "WalletPassphrase"
+	"github.com/leon123858/go-aid/utils"
 )
 
 func main() {
-	chain, err := ourChain.New(SERVER_HOST, SERVER_PORT, USER, PASSWD, USESSL)
+	utils.LoadConfig("./config.toml")
+	chain, err := ourChain.New(
+		utils.OurChainConfigInstance.ServerHost,
+		utils.OurChainConfigInstance.ServerPort,
+		utils.OurChainConfigInstance.User,
+		utils.OurChainConfigInstance.Passwd,
+		utils.OurChainConfigInstance.UseSsl)
 	if err != nil {
 		log.Fatal(err)
 	}
