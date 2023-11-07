@@ -1,0 +1,23 @@
+version: '3'
+services:
+  webapp:
+    image: go-aid
+    ports:
+      - "8080:8080"
+    networks:
+      my_network:
+        ipv4_address: 172.16.238.10
+    environment:
+      APP_HOST: 172.16.238.11
+  chain:
+    image: our-chain
+    networks:
+      my_network:
+        ipv4_address: 172.16.238.11
+
+networks:
+  my_network:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.238.0/24

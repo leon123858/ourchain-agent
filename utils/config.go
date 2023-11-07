@@ -3,6 +3,7 @@ package utils
 import (
 	"github.com/spf13/viper"
 	"log"
+	"os"
 )
 
 type OurChainConfig struct {
@@ -31,5 +32,9 @@ func LoadConfig(path ...string) {
 	err = viper.Unmarshal(&OurChainConfigInstance)
 	if err != nil {
 		log.Fatalln(err)
+	}
+	// override config with env host (for production only)
+	if os.Getenv("APP_HOST") != "" {
+		OurChainConfigInstance.ServerHost = os.Getenv("APP_HOST")
 	}
 }
