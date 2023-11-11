@@ -35,8 +35,8 @@ func (b *Bitcoind) GetTransaction(txid string) (result Transaction, err error) {
 }
 
 // ListUnspent return the unspent transaction output of the node
-func (b *Bitcoind) ListUnspent() (result []Unspent, err error) {
-	rpcResponse, err := b.client.call("listunspent", []interface{}{})
+func (b *Bitcoind) ListUnspent(addressList ...string) (result []Unspent, err error) {
+	rpcResponse, err := b.client.call("listunspent", []interface{}{6, 9999999, addressList})
 	if err = handleError(err, &rpcResponse); err != nil {
 		return []Unspent{}, err
 	}
