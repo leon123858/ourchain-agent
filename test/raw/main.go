@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/leon123858/go-aid/service/rpc"
+	"github.com/leon123858/go-aid/service/scanner"
 	"github.com/leon123858/go-aid/utils"
 	"log"
 )
@@ -26,7 +27,7 @@ func main() {
 	log.Printf("Balance: %f", balance)
 
 	// Get unspent
-	unspentList, err := chain.ListUnspent()
+	unspentList, err := scanner.ListUnspent(chain, []string{}, 6)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -94,7 +95,7 @@ func main() {
 	}
 
 	// get transaction
-	transaction, err := chain.GetTransaction(txid)
+	transaction, err := chain.GetRawTransaction(txid)
 	if err != nil {
 		log.Fatal(err)
 	}

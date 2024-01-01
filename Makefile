@@ -10,6 +10,11 @@ build:
 	go mod tidy
 	go build -o bin/aid cmd/main.go
 
+unit_test:
+	go clean -testcache
+	go fmt ./...
+	go test -v ./...
+
 function_test:
 	go fmt ./...
 	go run test/contract/runBasicContract.go

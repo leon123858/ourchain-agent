@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// GetBalance return the balance of the server or of a specific account
+// GetBalance return the balance of the server or of a specific account. can only be used for node owner!
 // If [account] is "", returns the server's total available balance.
 // If [minconf] is min confirm for coin should be counted.
 func (b *Bitcoind) GetBalance(account string, minconf uint64) (balance float64, err error) {
@@ -20,35 +20,40 @@ func (b *Bitcoind) GetBalance(account string, minconf uint64) (balance float64, 
 	return
 }
 
-// GetTransaction get a transaction in the ourChain, return the transaction.
-// txid is the id of the transaction.
-func (b *Bitcoind) GetTransaction(txid string) (result Transaction, err error) {
-	rpcResponse, err := b.client.call("gettransaction", []interface{}{txid})
+// GetBlockChainInfo get the blockchain info of the node
+// return the blockchain info
+func (b *Bitcoind) GetBlockChainInfo() (result ChainInfo, err error) {
+	rpcResponse, err := b.client.call("getblockchaininfo", []interface{}{})
 	if err = handleError(err, &rpcResponse); err != nil {
 		return
 	}
 	err = json.Unmarshal(rpcResponse.Result, &result)
-	if err != nil {
-		return
-	}
 	return
 }
 
-// ListUnspent return the unspent transaction output of the node
-func (b *Bitcoind) ListUnspent(addressList ...string) (result []Unspent, err error) {
-	rpcResponse, err := b.client.call("listunspent", []interface{}{6, 9999999, addressList})
+// GetBlock get a block in the ourChain, return the block.
+// blockHash is the hash of the block.
+func (b *Bitcoind) GetBlock(blockHash string) (result BlockInfo, err error) {
+	rpcResponse, err := b.client.call("getblock", []interface{}{blockHash})
 	if err = handleError(err, &rpcResponse); err != nil {
-		return []Unspent{}, err
+		return
 	}
-	// convert []byte to json
 	err = json.Unmarshal(rpcResponse.Result, &result)
-	if err != nil {
-		return []Unspent{}, err
-	}
-	return result, nil
+	return
 }
 
-// DumpPrivKey dump the private key of the address in the ourChain, return the private key.
+// GetBlockHash get a block hash in the ourChain, return the block hash.
+// blockHeight is the height of the block.
+func (b *Bitcoind) GetBlockHash(blockHeight uint64) (result string, err error) {
+	rpcResponse, err := b.client.call("getblockhash", []interface{}{blockHeight})
+	if err = handleError(err, &rpcResponse); err != nil {
+		return
+	}
+	result = strings.Trim(string(rpcResponse.Result), "\"")
+	return
+}
+
+// DumpPrivKey dump the private key of the address in the ourChain, return the private key. can only be used for node owner!
 // address is the address of the private key.
 func (b *Bitcoind) DumpPrivKey(address string) (result string, err error) {
 	rpcResponse, err := b.client.call("dumpprivkey", []interface{}{address})
@@ -171,5 +176,16 @@ func (b *Bitcoind) SendRawTransaction(rawTx string) (result string, err error) {
 		return "", err
 	}
 	result = strings.Trim(string(rpcResponse.Result), "\"")
+	return
+}
+
+// GetRawTransaction get a raw transaction in the ourChain, return the transaction.
+// txid is the id of the transaction.
+func (b *Bitcoind) GetRawTransaction(txid string) (result Transaction, err error) {
+	rpcResponse, err := b.client.call("getrawtransaction", []interface{}{txid, true})
+	if err = handleError(err, &rpcResponse); err != nil {
+		return
+	}
+	err = json.Unmarshal(rpcResponse.Result, &result)
 	return
 }

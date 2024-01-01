@@ -4,6 +4,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/leon123858/go-aid/modal"
 	"github.com/leon123858/go-aid/service/rpc"
+	"github.com/leon123858/go-aid/service/scanner"
 	"net/http"
 )
 
@@ -24,7 +25,8 @@ func GenerateChainGetController(chain *our_chain_rpc.Bitcoind, which string) ech
 	switch which {
 	case "getUnspent":
 		return func(ctx echo.Context) error {
-			list, err := chain.ListUnspent()
+			address := ctx.QueryParam("address")
+			list, err := scanner.ListUnspent(chain, []string{address}, 6)
 			return customResponseHandler(ctx, err, list)
 		}
 	case "getBalance":
@@ -42,7 +44,7 @@ func GenerateChainGetController(chain *our_chain_rpc.Bitcoind, which string) ech
 	case "getTransaction":
 		return func(ctx echo.Context) error {
 			txid := ctx.QueryParam("txid")
-			tx, err := chain.GetTransaction(txid)
+			tx, err := chain.GetRawTransaction(txid)
 			return customResponseHandler(ctx, err, tx)
 		}
 	default:
