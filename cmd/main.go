@@ -30,10 +30,10 @@ func main() {
 	e.Use(middleware.CORS())
 
 	getGroup := e.Group("/get")
-	getGroup.GET("/utxo", controller.GenerateChainGetController(chain, "getUnspent"))          // just used for node owner
 	getGroup.GET("/balance", controller.GenerateChainGetController(chain, "getBalance"))       // just used for node owner
 	getGroup.GET("/privatekey", controller.GenerateChainGetController(chain, "getPrivateKey")) // just used for node owner
 	getGroup.GET("/transaction", controller.GenerateChainGetController(chain, "getTransaction"))
+	getGroup.GET("/utxo", controller.GenerateChainGetController(chain, "getUnspent"))
 
 	getGroup.POST("/contractmessage", controller.GenerateChainPostController(chain, "dumpContractMessage"))
 
