@@ -26,7 +26,11 @@ func GenerateChainGetController(chain *our_chain_rpc.Bitcoind, which string) ech
 	case "getUnspent":
 		return func(ctx echo.Context) error {
 			address := ctx.QueryParam("address")
-			list, err := scanner.ListUnspent(chain, []string{address}, 6)
+			target := []string{address}
+			if address == "" {
+				target = []string{}
+			}
+			list, err := scanner.ListUnspent(chain, target, 100)
 			return customResponseHandler(ctx, err, list)
 		}
 	case "getBalance":
