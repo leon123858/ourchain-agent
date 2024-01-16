@@ -4,6 +4,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	ourChain "github.com/leon123858/go-aid/service/rpc"
+	"github.com/leon123858/go-aid/service/sqlite"
 	"log"
 
 	"github.com/leon123858/go-aid/controller"
@@ -21,6 +22,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	sqliteClient := sqlite.Client{}
+	if sqlite.New(&sqliteClient) != nil {
+		log.Fatal("sqlite init failed")
+	}
+	repositoryDTO := controller.RepositoryDTO{Chain: chain, Database: &sqliteClient}
 
 	e := echo.New()
 
@@ -30,20 +36,20 @@ func main() {
 	e.Use(middleware.CORS())
 
 	getGroup := e.Group("/get")
-	getGroup.GET("/balance", controller.GenerateChainGetController(chain, "getBalance"))       // just used for node owner
-	getGroup.GET("/privatekey", controller.GenerateChainGetController(chain, "getPrivateKey")) // just used for node owner
-	getGroup.GET("/transaction", controller.GenerateChainGetController(chain, "getTransaction"))
-	getGroup.GET("/utxo", controller.GenerateChainGetController(chain, "getUnspent"))
+	getGroup.GET("/balance", controller.GenerateChainGetController(repositoryDTO, "getBalance"))       // just used for node owner
+	getGroup.GET("/privatekey", controller.GenerateChainGetController(repositoryDTO, "getPrivateKey")) // just used for node owner
+	getGroup.GET("/transaction", controller.GenerateChainGetController(repositoryDTO, "getTransaction"))
+	getGroup.GET("/utxo", controller.GenerateChainGetController(repositoryDTO, "getUnspent"))
 
-	getGroup.POST("/contractmessage", controller.GenerateChainPostController(chain, "dumpContractMessage"))
+	getGroup.POST("/contractmessage", controller.GenerateChainPostController(repositoryDTO, "dumpContractMessage"))
 
 	blockGroup := e.Group("/block")
-	blockGroup.POST("/generate", controller.GenerateChainPostController(chain, "generateBlock")) // just used for test
+	blockGroup.POST("/generate", controller.GenerateChainPostController(repositoryDTO, "generateBlock")) // just used for test
 
 	rawTransactionGroup := e.Group("/rawtransaction")
-	rawTransactionGroup.POST("/create", controller.GenerateChainPostController(chain, "createRawTransaction"))
-	rawTransactionGroup.POST("/send", controller.GenerateChainPostController(chain, "sendRawTransaction"))
-	rawTransactionGroup.POST("/sign", controller.GenerateChainPostController(chain, "signRawTransaction"))
+	rawTransactionGroup.POST("/create", controller.GenerateChainPostController(repositoryDTO, "createRawTransaction"))
+	rawTransactionGroup.POST("/send", controller.GenerateChainPostController(repositoryDTO, "sendRawTransaction"))
+	rawTransactionGroup.POST("/sign", controller.GenerateChainPostController(repositoryDTO, "signRawTransaction"))
 
 	e.Logger.Fatal(e.Start(":8080"))
 }

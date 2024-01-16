@@ -1,12 +1,17 @@
 package sqlite
 
-type utxo struct {
-	utxoSearchArgument
+type Utxo struct {
+	UtxoSearchArgument
 	Vout   int
 	Amount float64
 }
 
-type utxoSearchArgument struct {
+type UtxoSearchArgument struct {
 	ID      string
 	Address string
+}
+
+type Block struct {
+	Height uint64
+	Hash   string
 }

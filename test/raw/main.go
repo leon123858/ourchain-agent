@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/leon123858/go-aid/service/rpc"
 	"github.com/leon123858/go-aid/service/scanner"
+	"github.com/leon123858/go-aid/service/sqlite"
 	"github.com/leon123858/go-aid/utils"
 	"log"
 )
@@ -18,6 +19,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	db := sqlite.Client{}
+	if sqlite.New(&db) != nil {
+		log.Fatal("sqlite init failed")
+	}
 
 	// Get balance
 	balance, err := chain.GetBalance("", 1)
@@ -27,7 +32,7 @@ func main() {
 	log.Printf("Balance: %f", balance)
 
 	// Get unspent
-	unspentList, err := scanner.ListUnspent(chain, []string{}, 100)
+	unspentList, err := scanner.ListUnspent(chain, &db, []string{}, 100)
 	if err != nil {
 		log.Fatal(err)
 	}

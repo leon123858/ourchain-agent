@@ -2,8 +2,6 @@ package controller
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/leon123858/go-aid/modal"
-	"github.com/leon123858/go-aid/service/rpc"
 	"github.com/leon123858/go-aid/service/scanner"
 	"net/http"
 )
@@ -21,7 +19,7 @@ func customResponseHandler(ctx echo.Context, err error, data interface{}) error 
 	})
 }
 
-func GenerateChainGetController(chain *our_chain_rpc.Bitcoind, which string) echo.HandlerFunc {
+func GenerateChainGetController(dto RepositoryDTO, which string) echo.HandlerFunc {
 	switch which {
 	case "getUnspent":
 		return func(ctx echo.Context) error {
@@ -30,25 +28,25 @@ func GenerateChainGetController(chain *our_chain_rpc.Bitcoind, which string) ech
 			if address == "" {
 				target = []string{}
 			}
-			list, err := scanner.ListUnspent(chain, target, 100)
+			list, err := scanner.ListUnspent(dto.Chain, dto.Database, target, 100)
 			return customResponseHandler(ctx, err, list)
 		}
 	case "getBalance":
 		return func(ctx echo.Context) error {
 			address := ctx.QueryParam("address")
-			balance, err := chain.GetBalance(address, 1)
+			balance, err := dto.Chain.GetBalance(address, 1)
 			return customResponseHandler(ctx, err, balance)
 		}
 	case "getPrivateKey":
 		return func(ctx echo.Context) error {
 			address := ctx.QueryParam("address")
-			privateKey, err := chain.DumpPrivKey(address)
+			privateKey, err := dto.Chain.DumpPrivKey(address)
 			return customResponseHandler(ctx, err, privateKey)
 		}
 	case "getTransaction":
 		return func(ctx echo.Context) error {
 			txid := ctx.QueryParam("txid")
-			tx, err := chain.GetRawTransaction(txid)
+			tx, err := dto.Chain.GetRawTransaction(txid)
 			return customResponseHandler(ctx, err, tx)
 		}
 	default:
@@ -56,51 +54,51 @@ func GenerateChainGetController(chain *our_chain_rpc.Bitcoind, which string) ech
 	}
 }
 
-func GenerateChainPostController(chain *our_chain_rpc.Bitcoind, which string) echo.HandlerFunc {
+func GenerateChainPostController(dto RepositoryDTO, which string) echo.HandlerFunc {
 	switch which {
 	case "generateBlock":
 		return func(ctx echo.Context) error {
-			blockIds, err := chain.GenerateBlock(1)
+			blockIds, err := dto.Chain.GenerateBlock(1)
 			return customResponseHandler(ctx, err, blockIds)
 		}
 	case "dumpContractMessage":
 		return func(ctx echo.Context) error {
-			req := new(model.ContractRequest)
+			req := new(ContractRequest)
 			err := ctx.Bind(&req)
 			if err != nil {
 				return err
 			}
-			message, err := chain.DumpContractMessage(req.Address, req.Arguments)
+			message, err := dto.Chain.DumpContractMessage(req.Address, req.Arguments)
 			return customResponseHandler(ctx, err, message)
 		}
 	case "createRawTransaction":
 		return func(ctx echo.Context) error {
-			req := new(model.RawTransactionRequest)
+			req := new(RawTransactionRequest)
 			err := ctx.Bind(&req)
 			if err != nil {
 				return err
 			}
-			result, err := chain.CreateRawTransaction(req.Inputs, req.Outputs, req.Contract)
+			result, err := dto.Chain.CreateRawTransaction(req.Inputs, req.Outputs, req.Contract)
 			return customResponseHandler(ctx, err, result)
 		}
 	case "signRawTransaction":
 		return func(ctx echo.Context) error {
-			req := new(model.SignRequest)
+			req := new(SignRequest)
 			err := ctx.Bind(&req)
 			if err != nil {
 				return err
 			}
-			result, err := chain.SignRawTransaction(req.RawTransaction, req.PrivateKey)
+			result, err := dto.Chain.SignRawTransaction(req.RawTransaction, req.PrivateKey)
 			return customResponseHandler(ctx, err, result)
 		}
 	case "sendRawTransaction":
 		return func(ctx echo.Context) error {
-			req := new(model.SendRequest)
+			req := new(SendRequest)
 			err := ctx.Bind(&req)
 			if err != nil {
 				return err
 			}
-			result, err := chain.SendRawTransaction(req.RawTransaction)
+			result, err := dto.Chain.SendRawTransaction(req.RawTransaction)
 			return customResponseHandler(ctx, err, result)
 		}
 	default:
