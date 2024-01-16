@@ -27,7 +27,7 @@ func main() {
 	log.Printf("Balance: %f", balance)
 
 	// Get unspent
-	unspentList, err := scanner.ListUnspent(chain, []string{}, 6)
+	unspentList, err := scanner.ListUnspent(chain, []string{}, 100)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -54,7 +54,7 @@ func main() {
 	println("Contract Action", our_chain_rpc.ContractNotExist, our_chain_rpc.ContractActionDeploy, our_chain_rpc.ContractActionCall)
 	contract := our_chain_rpc.ContractMessage{
 		Action:  our_chain_rpc.ContractActionDeploy,
-		Code:    "#include <ourcontract.h>\n#include <iostream>\n#include <json.hpp>\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n#include <sys/wait.h>\n#include <unistd.h>\n\nusing json = nlohmann::json;\n\nextern \"C\" int contract_main(int argc, char **argv) {\n  // try state\n  std::string* buf = state_read();\n  if (buf != nullptr) {\n    std::cerr << \"get state: \" << buf->c_str() << std::endl;\n    // some operation\n    json j = j.parse(*buf);\n    j.push_back(\"more click: \" + std::to_string((size_t)j.size()));\n    std::string* newBuf = new std::string(j.dump());\n    int ret = state_write(newBuf);\n    if (ret < 0) {\n     std::cerr << \"send state error\" << newBuf->c_str() << std::endl;\n    }\n    // release resource\n    delete buf;\n    delete newBuf;\n    return 0;\n  }\n  // init state\n  std::cerr << \"read state error\" << std::endl;\n  json j;\n  j.push_back(\"baby cute\");\n  j.push_back(1);\n  j.push_back(true);\n  std::string* newBuf = new std::string(j.dump());\n  std::cerr << \"buf:\" << newBuf->c_str() << std::endl;\n  int ret = state_write(newBuf);\n  if (ret < 0) {\n    std::cerr << \"send state error\" << newBuf->c_str() << std::endl;\n  }\n  delete newBuf;\n  return 0;\n}",
+		Code:    "#include <ourcontract.h>\n#include <iostream>\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n#include <sys/wait.h>\n#include <unistd.h>\n\nextern \"C\" int contract_main(int argc, char **argv) {\n  // pure mode\n  if (!check_runtime_can_write_db()) {\n    std::cerr << \"runtime is pure mode\" << std::endl;\n    json j = state_read();\n    std::cerr << \"get state: \" << j.dump() << std::endl;\n    std::cerr << \"pre txid: \" << get_pre_txid() << std::endl;\n    // some operation\n    j.push_back(\"pure click: \" + std::to_string((size_t)j.size()));\n    state_write(j);\n    return 0;\n  }\n  // call contract state\n  if (state_exist()) {\n    json j = state_read();\n    std::cerr << \"get state: \" << j.dump() << std::endl;\n    std::cerr << \"pre txid: \" << get_pre_txid() << std::endl;\n    // some operation\n    j.push_back(\"more click: \" + std::to_string((size_t)j.size()));\n    state_write(j);\n    return 0;\n  }\n  // init state\n  std::cerr << \"read state error\" << std::endl;\n  std::cerr << \"pre txid: \" << get_pre_txid() << std::endl;\n  json j;\n  j.push_back(\"baby cute\");\n  j.push_back(1);\n  j.push_back(true);\n  state_write(j);\n  return 0;\n}\n",
 		Address: "",
 		Args:    []string{},
 	}
@@ -86,7 +86,7 @@ func main() {
 	log.Printf("Transaction id: %s", txid)
 
 	// Generate block
-	blockHash, err := chain.GenerateBlock(1)
+	blockHash, err := chain.GenerateBlock(2)
 	if err != nil {
 		log.Fatal(err)
 	}

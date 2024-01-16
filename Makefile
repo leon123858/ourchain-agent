@@ -18,7 +18,6 @@ unit_test:
 function_test:
 	go fmt ./...
 	go run test/contract/runBasicContract.go
-	#go run test/db/runBasicDB.go
 	go run test/raw/main.go
 
 doc:

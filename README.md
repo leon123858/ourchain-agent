@@ -4,7 +4,7 @@ aid server with ourchain
 
 ## How to use?
 
-read [chainAPI](./chain.http)
+read functional test in [test](./test) directory
 
 ## How to run deploy by docker-compose?
 
