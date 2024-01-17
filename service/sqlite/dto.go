@@ -1,14 +1,15 @@
 package sqlite
 
 type Utxo struct {
-	UtxoSearchArgument
-	Vout   int
-	Amount float64
-}
-
-type UtxoSearchArgument struct {
-	ID      string
-	Address string
+	ID          string // txid
+	Address     string
+	Vout        int
+	Amount      float64
+	IsSpent     bool
+	IsCoinBase  bool
+	PreTxID     string
+	PreVout     int
+	BlockHeight uint64
 }
 
 type Block struct {

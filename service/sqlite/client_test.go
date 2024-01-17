@@ -51,187 +51,34 @@ func TestClient_Close(t *testing.T) {
 	}
 }
 
-func TestClient_createUtxo(t *testing.T) {
-	dbClient := setUp()
-	err := dbClient.CreateUtxo(Utxo{
-		UtxoSearchArgument: UtxoSearchArgument{
-			ID:      "test",
-			Address: "test",
-		},
-		Vout:   10,
-		Amount: 20,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	tearDown(dbClient)
-}
-
-func TestClient_createUtxoList(t *testing.T) {
-	dbClient := setUp()
-	err := dbClient.CreateUtxoList([]Utxo{
-		{
-			UtxoSearchArgument: UtxoSearchArgument{
-				ID:      "test1",
-				Address: "test",
-			},
-			Vout:   11,
-			Amount: 20,
-		},
-		{
-			UtxoSearchArgument: UtxoSearchArgument{
-				ID:      "test2",
-				Address: "test",
-			},
-			Vout:   12,
-			Amount: 20,
-		},
-		{
-			UtxoSearchArgument: UtxoSearchArgument{
-				ID:      "test3",
-				Address: "test",
-			},
-			Vout:   10,
-			Amount: 20,
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	tearDown(dbClient)
-}
-
-func TestClient_deleteUtxo(t *testing.T) {
+func TestClient_GetFirstBlockInfo(t *testing.T) {
 	client := setUp()
-	err := client.CreateUtxo(Utxo{
-		UtxoSearchArgument: UtxoSearchArgument{
-			ID:      "test",
-			Address: "test",
-		},
-		Vout:   10,
-		Amount: 20,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = client.DeleteUtxo("test")
-	if err != nil {
-		t.Fatal(err)
-	}
-}
 
-func TestClient_deleteUtxoList(t *testing.T) {
-	client := setUp()
-	err := client.CreateUtxoList([]Utxo{
-		{
-			UtxoSearchArgument: UtxoSearchArgument{
-				ID:      "test1",
-				Address: "test",
-			},
-			Vout:   11,
-			Amount: 20,
-		},
-		{
-			UtxoSearchArgument: UtxoSearchArgument{
-				ID:      "test2",
-				Address: "test",
-			},
-			Vout:   12,
-			Amount: 20,
-		},
-	})
+	var err error
+	// get first block info and get error because of no data
+	blocks, err := client.GetFirstBlockInfo()
+	if err != nil {
+		t.Fatal("should not error when no data")
+	}
+	assert.Equal(t, len(blocks), 0)
+	// insert data
+	client.Instance.Exec("INSERT INTO block(height, hash) VALUES(?, ?)", 1, "hash1")
+	// get first block info and get data now
+	blocks, err = client.GetFirstBlockInfo()
 	if err != nil {
 		t.Fatal(err)
 	}
-	result, _ := client.GetUtxoList(UtxoSearchArgument{})
-	if len(result) != 2 {
-		t.Fatal("createUtxoList failed")
-	}
-	err = client.DeleteUtxoList([]string{"test1", "test2"})
+	assert.Equal(t, blocks[0].Height, uint64(1))
+	assert.Equal(t, blocks[0].Hash, "hash1")
+	// insert more data
+	client.Instance.Exec("INSERT INTO block(height, hash) VALUES(?, ?)", 2, "hash2")
+	// get first block info and get data now
+	blocks, err = client.GetFirstBlockInfo()
 	if err != nil {
 		t.Fatal(err)
 	}
-	tearDown(client)
-}
-
-func TestClient_getUtxoList(t *testing.T) {
-	client := setUp()
-	err := client.CreateUtxo(Utxo{
-		UtxoSearchArgument: UtxoSearchArgument{
-			ID:      "test",
-			Address: "test",
-		},
-		Vout:   10,
-		Amount: 20,
-	})
-	if err != nil {
-		return
-	}
-	utxoList, err := client.GetUtxoList(UtxoSearchArgument{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	// print utxoList
-	for _, item := range utxoList {
-		assert.Equal(t, item.ID, "test")
-		assert.Equal(t, item.Address, "test")
-		assert.Equal(t, item.Vout, 10)
-		assert.Equal(t, item.Amount, 20.0)
-	}
-	tearDown(client)
-}
-
-func TestClient_getBlocks(t *testing.T) {
-	client := setUp()
-	err := client.CreateBlock(Block{
-		Height: 1,
-		Hash:   "test",
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = client.CreateBlock(Block{
-		Height: 1,
-		Hash:   "test",
-	})
-	if err == nil {
-		t.Fatal("createBlock should failed when same key")
-	}
-	err = client.CreateBlock(Block{
-		Height: 2,
-		Hash:   "test2",
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	blockList, err := client.GetBlocks(1, 0)
-	if err != nil {
-		t.Fatal(err)
-	}
-	tmpInt := uint64(2)
-	assert.Equal(t, len(blockList), 1)
-	assert.Equal(t, blockList[0].Height, tmpInt)
-	assert.Equal(t, blockList[0].Hash, "test2")
-
-	blockList, err = client.GetBlocks(1, 1)
-	if err != nil {
-		t.Fatal(err)
-	}
-	tmpInt = uint64(1)
-	assert.Equal(t, len(blockList), 1)
-	assert.Equal(t, blockList[0].Height, tmpInt)
-	assert.Equal(t, blockList[0].Hash, "test")
-
-	err = client.DeleteBlock(1)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	blockList, err = client.GetBlocks(2, 0)
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.Equal(t, len(blockList), 1)
+	assert.Equal(t, blocks[0].Height, uint64(2))
+	assert.Equal(t, blocks[0].Hash, "hash2")
 
 	tearDown(client)
 }

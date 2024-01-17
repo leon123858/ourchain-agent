@@ -110,11 +110,13 @@ func (chain *localChain) InitChainStep() (err error) {
 	if dbClient.Instance == nil {
 		return errors.New("db is nil")
 	}
-	blocks, err := dbClient.GetBlocks(1, 0)
+	blocks, err := dbClient.GetFirstBlockInfo()
 	if err != nil {
 		return err
 	}
 	if len(blocks) == 0 {
+		chain.Chain = []block{}
+		chain.Length = 0
 		return nil
 	}
 	chain.Chain = append(chain.Chain, block{blocks[0].Height, blocks[0].Hash})

@@ -21,10 +21,18 @@ func initTables(db *sql.DB) (err error) {
 func initUTXOTable(db *sql.DB) (err error) {
 	creatTable := `
     CREATE TABLE IF NOT EXISTS utxo(
-    "id" TEXT PRIMARY KEY,
+    "id" TEXT,
     "vout" INTEGER,
     "address" TEXT,
-    "amount" REAL
+    "amount" REAL,
+    "is_spent" INTEGER DEFAULT 0,
+    "is_coinbase" INTEGER DEFAULT 0,
+    "pre_txid" TEXT,
+    "pre_vout" INTEGER,
+    "block_height" INTEGER,
+    PRIMARY KEY("id", "vout"),
+    FOREIGN KEY("pre_txid", "pre_vout") REFERENCES utxo("id", "vout"),
+    FOREIGN KEY("block_height") REFERENCES block("height")
     );`
 	_, err = db.Exec(creatTable)
 	return err
