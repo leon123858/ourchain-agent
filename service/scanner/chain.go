@@ -130,14 +130,11 @@ func (chain *localChain) SyncLength(remote abstractChain) (err error) {
 	if rpc == nil || chain.Client == nil {
 		return errors.New("rpc or db is nil")
 	}
-	if chain.Length == info.Length && chain.Chain[0].Hash == info.FirstHash {
-		return nil
-	}
-	if e := minusBlocksToSame(chain, rpc); e != nil {
+	if e := minusBlocksToSame(chain, rpc, info.Length); e != nil {
 		return e
 	}
 	if chain.Length < info.Length {
-		if e := addBlocksToSame(chain, rpc); e != nil {
+		if e := addBlocksToSame(chain, rpc, info.Length); e != nil {
 			return e
 		}
 	}

@@ -32,30 +32,30 @@ func TestBitcoind_GetBlockChainInfo(t *testing.T) {
 }
 
 func TestBitcoind_GetBlock(t *testing.T) {
-	//chain := initChain()
-	//blockInfo, err := chain.GetBlock("16e4287f1928844facc298905654bc73766126bc47b98065475946feaaea223a")
-	//if err = nil {
-	//	t.Fatal(err)
-	//}
-	//t.Logf("Block Info: %+v", blockInfo)
-	//print("block hash: ", blockInfo.Hash, "\n")
-	//print("block txs: ", blockInfo.Tx[1], "\n")
+	chain := initChain()
+	blockInfo, err := chain.GetBlock("4cfdbf0980085181684b7ea50ab3c4206116acc20491befe42f1ab47a3a15689")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("Block Info: %+v", blockInfo)
+	print("block hash: ", blockInfo.Hash, "\n")
+	print("block txs: ", blockInfo.Tx[0], "\n")
 }
 
 func TestBitcoind_GetRawTransaction(t *testing.T) {
-	//chain := initChain()
-	//tx, err := chain.GetRawTransaction("26cf5c71bf9bf2784b86e8dd49f7269c0c30d74ecc78af172626962c8e07c7f7")
-	//if err != nil {
-	//	t.Fatal(err)
-	//}
-	//t.Logf("Tx Info: %+v", tx)
-	//print("tx hash: ", tx.TxID, "\n")
-	//print("tx address: ", tx.Vout[0].ScriptPubKey.Addresses[0], "\n")
+	chain := initChain()
+	tx, err := chain.GetRawTransaction("82e828404ba561e12483c97d486cad7fc6fa1f1beaf450c9d7028efcc5304dbd")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("Tx Info: %+v", tx)
+	print("tx hash: ", tx.TxID, "\n")
+	print("tx address: ", tx.Vout[0].ScriptPubKey.Addresses[0], "\n")
 }
 
 func TestBitcoind_GetBlockHash(t *testing.T) {
 	chain := initChain()
-	blockHash, err := chain.GetBlockHash(0)
+	blockHash, err := chain.GetBlockHash(2)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,9 +1,7 @@
 package sqlite
 
 import (
-	"database/sql"
 	"github.com/magiconair/properties/assert"
-	"reflect"
 	"testing"
 )
 
@@ -117,235 +115,144 @@ func TestBlockDelete(t *testing.T) {
 	tearDown(client)
 }
 
-func TestExecPrepare(t *testing.T) {
-	type args struct {
-		stmt *sql.Stmt
-		args []interface{}
+func TestUtxoConstrain(t *testing.T) {
+	client := setUp()
+	// block_height constrain
+	tx, err := BeginTx(&client)
+	assert.Equal(t, err, nil)
+	stmt, err := BlockCreatePrepare(tx)
+	assert.Equal(t, err, nil)
+	stmt, err = UtxoCreatePrepare(tx)
+	assert.Equal(t, err, nil)
+	utxo := Utxo{
+		ID:          "txhash",
+		Vout:        0,
+		BlockHeight: 1,
+		Address:     "address",
+		Amount:      1,
+		IsCoinBase:  true,
+		IsSpent:     false,
 	}
-	tests := []struct {
-		name       string
-		args       args
-		wantResult sql.Result
-		wantErr    bool
-	}{
-		// TODO: Add test cases.
+	_, err = UtxoCreateExec(stmt, utxo)
+	assert.Equal(t, err.Error(), "FOREIGN KEY constraint failed")
+	err = CommitTx(tx)
+	// pre_txid, pre_vout constrain
+	tx, err = BeginTx(&client)
+	assert.Equal(t, err, nil)
+	stmt, err = BlockCreatePrepare(tx)
+	assert.Equal(t, err, nil)
+	block := Block{
+		Height: 1,
+		Hash:   "hash",
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotResult, err := ExecPrepare(tt.args.stmt, tt.args.args...)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ExecPrepare() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(gotResult, tt.wantResult) {
-				t.Errorf("ExecPrepare() gotResult = %v, want %v", gotResult, tt.wantResult)
-			}
-		})
+	_, err = BlockCreateExec(stmt, block)
+	assert.Equal(t, err, nil)
+	stmt, err = UtxoCreatePrepare(tx)
+	assert.Equal(t, err, nil)
+	utxo = Utxo{
+		ID:          "txhash",
+		Vout:        0,
+		BlockHeight: 1,
+		Address:     "address",
+		Amount:      1,
+		IsCoinBase:  true,
+		IsSpent:     false,
 	}
+	_, err = UtxoCreateExec(stmt, utxo)
+	assert.Equal(t, err, nil)
+	err = CommitTx(tx)
+	// primary key constrain
+	tx, err = BeginTx(&client)
+	assert.Equal(t, err, nil)
+	stmt, err = UtxoCreatePrepare(tx)
+	assert.Equal(t, err, nil)
+	utxo = Utxo{
+		ID:          "txhash",
+		Vout:        0,
+		BlockHeight: 1,
+		Address:     "address",
+		Amount:      1,
+		IsCoinBase:  true,
+		IsSpent:     false,
+	}
+	_, err = UtxoCreateExec(stmt, utxo)
+	assert.Equal(t, err.Error(), "UNIQUE constraint failed: utxo.id, utxo.vout")
+	err = CommitTx(tx)
+
+	tearDown(client)
 }
 
-func TestPrepareTx(t *testing.T) {
-	type args struct {
-		tx  *sql.Tx
-		sql string
+func TestUtxo(t *testing.T) {
+	client := setUp()
+	// insert
+	tx, err := BeginTx(&client)
+	assert.Equal(t, err, nil)
+	stmt, err := BlockCreatePrepare(tx)
+	assert.Equal(t, err, nil)
+	item := Block{
+		Height: uint64(1),
+		Hash:   "hash",
 	}
-	tests := []struct {
-		name     string
-		args     args
-		wantStmt *sql.Stmt
-		wantErr  bool
-	}{
-		// TODO: Add test cases.
+	_, err = BlockCreateExec(stmt, item)
+	assert.Equal(t, err, nil)
+	stmt, err = UtxoCreatePrepare(tx)
+	assert.Equal(t, err, nil)
+	utxo := Utxo{
+		ID:          "txhash",
+		Vout:        0,
+		BlockHeight: 1,
+		Address:     "address",
+		Amount:      1,
+		IsCoinBase:  true,
+		IsSpent:     false,
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotStmt, err := PrepareTx(tt.args.tx, tt.args.sql)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("PrepareTx() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(gotStmt, tt.wantStmt) {
-				t.Errorf("PrepareTx() gotStmt = %v, want %v", gotStmt, tt.wantStmt)
-			}
-		})
+	_, err = UtxoCreateExec(stmt, utxo)
+	assert.Equal(t, err, nil)
+	err = CommitTx(tx)
+	assert.Equal(t, err, nil)
+	utxoList, err := client.GetAddressUtxo("address", 1)
+	assert.Equal(t, err, nil)
+	assert.Equal(t, len(*utxoList), 1)
+	assert.Equal(t, (*utxoList)[0].ID, "txhash")
+	assert.Equal(t, (*utxoList)[0].Vout, 0)
+	assert.Equal(t, (*utxoList)[0].BlockHeight, uint64(1))
+	assert.Equal(t, (*utxoList)[0].Address, "address")
+	assert.Equal(t, (*utxoList)[0].Amount, float64(1))
+	assert.Equal(t, (*utxoList)[0].IsCoinBase, true)
+	assert.Equal(t, (*utxoList)[0].IsSpent, false)
+	// update
+	tx, err = BeginTx(&client)
+	assert.Equal(t, err, nil)
+	stmt, err = UtxoUpdatePrepare(tx)
+	assert.Equal(t, err, nil)
+	utxo = Utxo{
+		ID:      "txhash",
+		Vout:    0,
+		IsSpent: true,
 	}
-}
+	_, err = UtxoUpdateExec(stmt, utxo)
+	assert.Equal(t, err, nil)
+	err = CommitTx(tx)
+	assert.Equal(t, err, nil)
+	utxoList, err = client.GetAddressUtxo("address", 1)
+	assert.Equal(t, err, nil)
+	assert.Equal(t, len(*utxoList), 0)
+	// delete
+	tx, err = BeginTx(&client)
+	assert.Equal(t, err, nil)
+	stmt, err = UtxoDeletePrepare(tx)
+	assert.Equal(t, err, nil)
+	utxo = Utxo{
+		ID:   "txhash",
+		Vout: 0,
+	}
+	_, err = UtxoDeleteExec(stmt, utxo)
+	assert.Equal(t, err, nil)
+	err = CommitTx(tx)
+	assert.Equal(t, err, nil)
+	utxoList, err = client.GetAddressUtxo("address", 1)
+	assert.Equal(t, err, nil)
+	assert.Equal(t, len(*utxoList), 0)
 
-func TestRollbackTx(t *testing.T) {
-	type args struct {
-		tx *sql.Tx
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := RollbackTx(tt.args.tx); (err != nil) != tt.wantErr {
-				t.Errorf("RollbackTx() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestUtxoCreateExec(t *testing.T) {
-	type args struct {
-		stmt *sql.Stmt
-		item Utxo
-	}
-	tests := []struct {
-		name       string
-		args       args
-		wantResult sql.Result
-		wantErr    bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotResult, err := UtxoCreateExec(tt.args.stmt, tt.args.item)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("UtxoCreateExec() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(gotResult, tt.wantResult) {
-				t.Errorf("UtxoCreateExec() gotResult = %v, want %v", gotResult, tt.wantResult)
-			}
-		})
-	}
-}
-
-func TestUtxoCreatePrepare(t *testing.T) {
-	type args struct {
-		tx *sql.Tx
-	}
-	tests := []struct {
-		name     string
-		args     args
-		wantStmt *sql.Stmt
-		wantErr  bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotStmt, err := UtxoCreatePrepare(tt.args.tx)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("UtxoCreatePrepare() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(gotStmt, tt.wantStmt) {
-				t.Errorf("UtxoCreatePrepare() gotStmt = %v, want %v", gotStmt, tt.wantStmt)
-			}
-		})
-	}
-}
-
-func TestUtxoDeleteExec(t *testing.T) {
-	type args struct {
-		stmt *sql.Stmt
-		item Utxo
-	}
-	tests := []struct {
-		name       string
-		args       args
-		wantResult sql.Result
-		wantErr    bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotResult, err := UtxoDeleteExec(tt.args.stmt, tt.args.item)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("UtxoDeleteExec() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(gotResult, tt.wantResult) {
-				t.Errorf("UtxoDeleteExec() gotResult = %v, want %v", gotResult, tt.wantResult)
-			}
-		})
-	}
-}
-
-func TestUtxoDeletePrepare(t *testing.T) {
-	type args struct {
-		tx *sql.Tx
-	}
-	tests := []struct {
-		name     string
-		args     args
-		wantStmt *sql.Stmt
-		wantErr  bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotStmt, err := UtxoDeletePrepare(tt.args.tx)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("UtxoDeletePrepare() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(gotStmt, tt.wantStmt) {
-				t.Errorf("UtxoDeletePrepare() gotStmt = %v, want %v", gotStmt, tt.wantStmt)
-			}
-		})
-	}
-}
-
-func TestUtxoUpdateExec(t *testing.T) {
-	type args struct {
-		stmt *sql.Stmt
-		item Utxo
-	}
-	tests := []struct {
-		name       string
-		args       args
-		wantResult sql.Result
-		wantErr    bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotResult, err := UtxoUpdateExec(tt.args.stmt, tt.args.item)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("UtxoUpdateExec() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(gotResult, tt.wantResult) {
-				t.Errorf("UtxoUpdateExec() gotResult = %v, want %v", gotResult, tt.wantResult)
-			}
-		})
-	}
-}
-
-func TestUtxoUpdatePrepare(t *testing.T) {
-	type args struct {
-		tx *sql.Tx
-	}
-	tests := []struct {
-		name     string
-		args     args
-		wantStmt *sql.Stmt
-		wantErr  bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotStmt, err := UtxoUpdatePrepare(tt.args.tx)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("UtxoUpdatePrepare() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(gotStmt, tt.wantStmt) {
-				t.Errorf("UtxoUpdatePrepare() gotStmt = %v, want %v", gotStmt, tt.wantStmt)
-			}
-		})
-	}
+	tearDown(client)
 }

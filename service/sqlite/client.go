@@ -48,6 +48,16 @@ func (client *Client) GetFirstBlockInfo() ([]Block, error) {
 	return []Block{{Height: height, Hash: hash}}, nil
 }
 
+func (client *Client) GetBlockHash(height uint64) (string, error) {
+	row := client.Instance.QueryRow("SELECT hash FROM block WHERE height = ?", height)
+	var hash string
+	err := row.Scan(&hash)
+	if err != nil {
+		return "", err
+	}
+	return hash, nil
+}
+
 func (client *Client) GetAddressUtxo(address string, maxHeight int) (*[]Utxo, error) {
 	rows, err := client.Instance.Query("SELECT * FROM utxo WHERE address = ? AND block_height <= ? AND is_spent = 0", address, maxHeight)
 	if err != nil {
@@ -60,11 +70,19 @@ func (client *Client) GetAddressUtxo(address string, maxHeight int) (*[]Utxo, er
 		}
 	}(rows)
 	var result []Utxo
+	var PreTxID sql.NullString
+	var PreVout sql.NullInt32
 	for rows.Next() {
 		var utxo Utxo
-		err = rows.Scan(&utxo.ID, &utxo.Vout, &utxo.Address, &utxo.Amount, &utxo.IsSpent, &utxo.IsCoinBase, &utxo.PreTxID, &utxo.PreVout, &utxo.BlockHeight)
+		err = rows.Scan(&utxo.ID, &utxo.Vout, &utxo.Address, &utxo.Amount, &utxo.IsSpent, &utxo.IsCoinBase, &PreTxID, &PreVout, &utxo.BlockHeight)
 		if err != nil {
 			return &[]Utxo{}, err
+		}
+		if PreTxID.Valid {
+			utxo.PreTxID = PreTxID.String
+		}
+		if PreVout.Valid {
+			utxo.PreVout = int(PreVout.Int32)
 		}
 		result = append(result, utxo)
 	}

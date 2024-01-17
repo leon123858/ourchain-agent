@@ -53,13 +53,18 @@ func UtxoDeletePrepare(tx *sql.Tx) (stmt *sql.Stmt, err error) {
 }
 
 func UtxoCreateExec(stmt *sql.Stmt, item Utxo) (result sql.Result, err error) {
+	if item.IsCoinBase {
+		return ExecPrepare(stmt, item.ID, item.Vout, item.Address, item.Amount, item.IsSpent, item.IsCoinBase, nil, nil, item.BlockHeight)
+	}
 	return ExecPrepare(stmt, item.ID, item.Vout, item.Address, item.Amount, item.IsSpent, item.IsCoinBase, item.PreTxID, item.PreVout, item.BlockHeight)
 }
 
+// UtxoUpdateExec only need item.IsSpent, ID, Vout now
 func UtxoUpdateExec(stmt *sql.Stmt, item Utxo) (result sql.Result, err error) {
 	return ExecPrepare(stmt, item.IsSpent, item.ID, item.Vout)
 }
 
+// UtxoDeleteExec only need item.ID, Vout now
 func UtxoDeleteExec(stmt *sql.Stmt, item Utxo) (result sql.Result, err error) {
 	return ExecPrepare(stmt, item.ID, item.Vout)
 }

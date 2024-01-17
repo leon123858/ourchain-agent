@@ -15,6 +15,10 @@ func initTables(db *sql.DB) (err error) {
 	if err = initBlockTable(db); err != nil {
 		return err
 	}
+	_, err = db.Exec("PRAGMA foreign_keys = ON")
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

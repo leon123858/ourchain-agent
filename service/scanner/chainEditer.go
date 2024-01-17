@@ -2,15 +2,10 @@ package scanner
 
 import (
 	OurChainRpc "github.com/leon123858/go-aid/service/rpc"
-	"github.com/leon123858/go-aid/service/sqlite"
 )
 
-func addBlocksToSame(curLocalChain *localChain, rpc *OurChainRpc.Bitcoind) (err error) {
-	info, err := rpc.GetBlockChainInfo()
-	if err != nil {
-		return
-	}
-	for i := curLocalChain.Length + 1; i < uint64(info.Blocks); i++ {
+func addBlocksToSame(curLocalChain *localChain, rpc *OurChainRpc.Bitcoind, height uint64) (err error) {
+	for i := curLocalChain.Length + 1; i < height; i++ {
 		var blockHash string
 		blockHash, err = rpc.GetBlockHash(i)
 		if err != nil {
@@ -29,14 +24,15 @@ func addBlocksToSame(curLocalChain *localChain, rpc *OurChainRpc.Bitcoind) (err 
 			}
 			for _, vout := range txInfo.Vout {
 				if vout.ScriptPubKey.Type == "pubkey" && vout.ScriptPubKey.Addresses != nil {
-					err = curLocalChain.Client.CreateUtxo(sqlite.Utxo{UtxoSearchArgument: sqlite.UtxoSearchArgument{ID: tx, Address: vout.ScriptPubKey.Addresses[0]}, Vout: vout.N, Amount: vout.Value})
-					if err != nil {
-						return err
-					}
-					err = curLocalChain.Client.CreateBlock(sqlite.Block{Height: i, Hash: blockHash})
-					if err != nil {
-						return err
-					}
+					// TODO: add new utxo to db
+				}
+			}
+			for _, vin := range txInfo.Vin {
+				if vin.Coinbase != "" {
+					// coinbase do not need do anything
+					continue
+				} else if vin.Txid != "" {
+					// TODO: remove utxo from db
 				}
 			}
 		}
@@ -44,6 +40,26 @@ func addBlocksToSame(curLocalChain *localChain, rpc *OurChainRpc.Bitcoind) (err 
 	return
 }
 
-func minusBlocksToSame(curLocalChain *localChain, rpc *OurChainRpc.Bitcoind) (err error) {
-	return
+func minusBlocksToSame(curLocalChain *localChain, rpc *OurChainRpc.Bitcoind, remoteHeight uint64) (err error) {
+	targetHeight := min(curLocalChain.Length, remoteHeight)
+	for {
+		var blockHash string
+		blockHash, err = rpc.GetBlockHash(targetHeight)
+		if err != nil {
+			return
+		}
+		var localHash string
+		localHash, err = curLocalChain.Client.GetBlockHash(targetHeight)
+		if err != nil {
+			return
+		}
+		if blockHash == localHash {
+			return
+		}
+		targetHeight--
+		if targetHeight == 0 {
+			return
+		}
+	}
+	// TODO: delete utxo and block from db to targetHeight
 }
