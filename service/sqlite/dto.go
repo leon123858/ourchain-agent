@@ -6,13 +6,16 @@ type Utxo struct {
 	Vout        int
 	Amount      float64
 	IsSpent     bool
-	IsCoinBase  bool
-	PreTxID     string
-	PreVout     int
 	BlockHeight uint64
 }
 
 type Block struct {
 	Height uint64
 	Hash   string
+}
+
+type PreUtxo struct {
+	TxID    string
+	PreTxID string
+	PreVout int
 }

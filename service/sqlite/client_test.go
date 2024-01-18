@@ -10,7 +10,7 @@ func setUp() Client {
 	if New(&dbClient) != nil {
 		panic("New dbClient failed")
 	}
-	if err := clearTables(dbClient.Instance); err != nil {
+	if err := ClearTables(dbClient.Instance); err != nil {
 		panic("Clear tables failed")
 	}
 	return dbClient
@@ -79,6 +79,21 @@ func TestClient_GetFirstBlockInfo(t *testing.T) {
 	}
 	assert.Equal(t, blocks[0].Height, uint64(2))
 	assert.Equal(t, blocks[0].Hash, "hash2")
+
+	tearDown(client)
+}
+
+func TestClient_GetPreUtxo(t *testing.T) {
+	client := setUp()
+
+	var err error
+	// get first block info and get error because of no data
+	utxos, err := client.GetPreUtxo("emptyTxID")
+	if err != nil {
+		t.Fatal("should not error when no data")
+	}
+	assert.Equal(t, len(*utxos), 0)
+	// insert data
 
 	tearDown(client)
 }

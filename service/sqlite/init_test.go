@@ -11,7 +11,7 @@ func Test_initTables(t *testing.T) {
 	if err == nil {
 		t.Fatal("initTables should failed")
 	}
-	if New(&dbClient) != nil {
+	if err = New(&dbClient); err != nil {
 		t.Fatal("New dbClient failed")
 	}
 }

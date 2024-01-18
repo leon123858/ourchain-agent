@@ -70,21 +70,37 @@ func (client *Client) GetAddressUtxo(address string, maxHeight int) (*[]Utxo, er
 		}
 	}(rows)
 	var result []Utxo
-	var PreTxID sql.NullString
-	var PreVout sql.NullInt32
 	for rows.Next() {
 		var utxo Utxo
-		err = rows.Scan(&utxo.ID, &utxo.Vout, &utxo.Address, &utxo.Amount, &utxo.IsSpent, &utxo.IsCoinBase, &PreTxID, &PreVout, &utxo.BlockHeight)
+		err = rows.Scan(&utxo.ID, &utxo.Vout, &utxo.Address, &utxo.Amount, &utxo.IsSpent, &utxo.BlockHeight)
 		if err != nil {
 			return &[]Utxo{}, err
 		}
-		if PreTxID.Valid {
-			utxo.PreTxID = PreTxID.String
-		}
-		if PreVout.Valid {
-			utxo.PreVout = int(PreVout.Int32)
-		}
 		result = append(result, utxo)
+	}
+	return &result, nil
+}
+
+func (client *Client) GetPreUtxo(txid string) (*[]PreUtxo, error) {
+	rows, err := client.Instance.Query("SELECT pre_txid, pre_vout FROM tx WHERE txid = ?", txid)
+	if err != nil {
+		return &[]PreUtxo{}, err
+	}
+	defer func(rows *sql.Rows) {
+		e := rows.Close()
+		if e != nil {
+			panic(e)
+		}
+	}(rows)
+	var result []PreUtxo
+	for rows.Next() {
+		var preTxID string
+		var preVout int
+		err := rows.Scan(&preTxID, &preVout)
+		if err != nil {
+			return &result, err
+		}
+		result = append(result, PreUtxo{PreTxID: preTxID, PreVout: preVout, TxID: txid})
 	}
 	return &result, nil
 }

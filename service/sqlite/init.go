@@ -15,6 +15,9 @@ func initTables(db *sql.DB) (err error) {
 	if err = initBlockTable(db); err != nil {
 		return err
 	}
+	if err = initTxTable(db); err != nil {
+		return err
+	}
 	_, err = db.Exec("PRAGMA foreign_keys = ON")
 	if err != nil {
 		return err
@@ -30,12 +33,8 @@ func initUTXOTable(db *sql.DB) (err error) {
     "address" TEXT,
     "amount" REAL,
     "is_spent" INTEGER DEFAULT 0,
-    "is_coinbase" INTEGER DEFAULT 0,
-    "pre_txid" TEXT,
-    "pre_vout" INTEGER,
     "block_height" INTEGER,
     PRIMARY KEY("id", "vout"),
-    FOREIGN KEY("pre_txid", "pre_vout") REFERENCES utxo("id", "vout"),
     FOREIGN KEY("block_height") REFERENCES block("height")
     );`
 	_, err = db.Exec(creatTable)
@@ -52,9 +51,25 @@ func initBlockTable(db *sql.DB) (err error) {
 	return err
 }
 
-func clearTables(db *sql.DB) (err error) {
+func initTxTable(db *sql.DB) (err error) {
+	creatTable := `
+	CREATE TABLE IF NOT EXISTS tx(
+	"txid" TEXT,
+	"pre_txid" TEXT,
+	"pre_vout" INTEGER,
+	PRIMARY KEY("pre_txid", "pre_vout"),
+	FOREIGN KEY("pre_txid", "pre_vout") REFERENCES utxo("id", "vout")
+	);`
+	_, err = db.Exec(creatTable)
+	return err
+}
+
+func ClearTables(db *sql.DB) (err error) {
 	if db == nil {
 		return errors.New("db is nil")
+	}
+	if _, err = db.Exec("DELETE FROM tx"); err != nil {
+		return err
 	}
 	if _, err = db.Exec("DELETE FROM utxo"); err != nil {
 		return err

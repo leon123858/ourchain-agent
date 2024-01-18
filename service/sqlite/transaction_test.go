@@ -130,7 +130,6 @@ func TestUtxoConstrain(t *testing.T) {
 		BlockHeight: 1,
 		Address:     "address",
 		Amount:      1,
-		IsCoinBase:  true,
 		IsSpent:     false,
 	}
 	_, err = UtxoCreateExec(stmt, utxo)
@@ -155,10 +154,20 @@ func TestUtxoConstrain(t *testing.T) {
 		BlockHeight: 1,
 		Address:     "address",
 		Amount:      1,
-		IsCoinBase:  true,
 		IsSpent:     false,
 	}
 	_, err = UtxoCreateExec(stmt, utxo)
+	stmt, err = TxCreatePrepare(tx)
+	assert.Equal(t, err, nil)
+	txItem := PreUtxo{
+		TxID:    "txhash2",
+		PreTxID: "pre_txhash",
+		PreVout: 0,
+	}
+	_, err = TxCreateExec(stmt, txItem)
+	assert.Equal(t, err.Error(), "FOREIGN KEY constraint failed")
+	txItem.PreTxID = "txhash"
+	_, err = TxCreateExec(stmt, txItem)
 	assert.Equal(t, err, nil)
 	err = CommitTx(tx)
 	// primary key constrain
@@ -172,7 +181,6 @@ func TestUtxoConstrain(t *testing.T) {
 		BlockHeight: 1,
 		Address:     "address",
 		Amount:      1,
-		IsCoinBase:  true,
 		IsSpent:     false,
 	}
 	_, err = UtxoCreateExec(stmt, utxo)
@@ -203,7 +211,6 @@ func TestUtxo(t *testing.T) {
 		BlockHeight: 1,
 		Address:     "address",
 		Amount:      1,
-		IsCoinBase:  true,
 		IsSpent:     false,
 	}
 	_, err = UtxoCreateExec(stmt, utxo)
@@ -218,7 +225,6 @@ func TestUtxo(t *testing.T) {
 	assert.Equal(t, (*utxoList)[0].BlockHeight, uint64(1))
 	assert.Equal(t, (*utxoList)[0].Address, "address")
 	assert.Equal(t, (*utxoList)[0].Amount, float64(1))
-	assert.Equal(t, (*utxoList)[0].IsCoinBase, true)
 	assert.Equal(t, (*utxoList)[0].IsSpent, false)
 	// update
 	tx, err = BeginTx(&client)
@@ -253,6 +259,70 @@ func TestUtxo(t *testing.T) {
 	utxoList, err = client.GetAddressUtxo("address", 1)
 	assert.Equal(t, err, nil)
 	assert.Equal(t, len(*utxoList), 0)
+
+	tearDown(client)
+}
+
+func TestPreUtxo(t *testing.T) {
+	client := setUp()
+
+	tx, err := BeginTx(&client)
+	assert.Equal(t, err, nil)
+	stmt, err := BlockCreatePrepare(tx)
+	assert.Equal(t, err, nil)
+	block := Block{
+		Height: 1,
+		Hash:   "hash",
+	}
+	_, err = BlockCreateExec(stmt, block)
+	assert.Equal(t, err, nil)
+	stmt, err = UtxoCreatePrepare(tx)
+	assert.Equal(t, err, nil)
+	utxo := Utxo{
+		ID:          "txhash",
+		Vout:        0,
+		BlockHeight: 1,
+		Address:     "address",
+		Amount:      1,
+		IsSpent:     false,
+	}
+	_, err = UtxoCreateExec(stmt, utxo)
+	assert.Equal(t, err, nil)
+	stmt, err = TxCreatePrepare(tx)
+	assert.Equal(t, err, nil)
+	txItem := PreUtxo{
+		TxID:    "txhash2",
+		PreTxID: "txhash",
+		PreVout: 0,
+	}
+	_, err = TxCreateExec(stmt, txItem)
+	assert.Equal(t, err, nil)
+	err = CommitTx(tx)
+	assert.Equal(t, err, nil)
+	// check
+	txItems, err := client.GetPreUtxo("txhash2")
+	assert.Equal(t, err, nil)
+	assert.Equal(t, len(*txItems), 1)
+	assert.Equal(t, (*txItems)[0].TxID, "txhash2")
+	assert.Equal(t, (*txItems)[0].PreTxID, "txhash")
+	assert.Equal(t, (*txItems)[0].PreVout, 0)
+
+	// delete
+	tx, err = BeginTx(&client)
+	assert.Equal(t, err, nil)
+	stmt, err = TxDeletePrepare(tx)
+	assert.Equal(t, err, nil)
+	txItem = PreUtxo{
+		TxID: "txhash2",
+	}
+	_, err = TxDeleteExec(stmt, txItem)
+	assert.Equal(t, err, nil)
+	err = CommitTx(tx)
+	assert.Equal(t, err, nil)
+	// check
+	txItems, err = client.GetPreUtxo("txhash2")
+	assert.Equal(t, err, nil)
+	assert.Equal(t, len(*txItems), 0)
 
 	tearDown(client)
 }

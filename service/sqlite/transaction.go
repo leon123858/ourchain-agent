@@ -41,7 +41,7 @@ func ExecPrepare(stmt *sql.Stmt, args ...interface{}) (result sql.Result, err er
 }
 
 func UtxoCreatePrepare(tx *sql.Tx) (stmt *sql.Stmt, err error) {
-	return PrepareTx(tx, "INSERT INTO utxo(id, vout, address, amount, is_spent, is_coinbase, pre_txid, pre_vout, block_height) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)")
+	return PrepareTx(tx, "INSERT INTO utxo(id, vout, address, amount, is_spent, block_height) VALUES(?, ?, ?, ?, ?, ?)")
 }
 
 func UtxoUpdatePrepare(tx *sql.Tx) (stmt *sql.Stmt, err error) {
@@ -53,10 +53,7 @@ func UtxoDeletePrepare(tx *sql.Tx) (stmt *sql.Stmt, err error) {
 }
 
 func UtxoCreateExec(stmt *sql.Stmt, item Utxo) (result sql.Result, err error) {
-	if item.IsCoinBase {
-		return ExecPrepare(stmt, item.ID, item.Vout, item.Address, item.Amount, item.IsSpent, item.IsCoinBase, nil, nil, item.BlockHeight)
-	}
-	return ExecPrepare(stmt, item.ID, item.Vout, item.Address, item.Amount, item.IsSpent, item.IsCoinBase, item.PreTxID, item.PreVout, item.BlockHeight)
+	return ExecPrepare(stmt, item.ID, item.Vout, item.Address, item.Amount, item.IsSpent, item.BlockHeight)
 }
 
 // UtxoUpdateExec only need item.IsSpent, ID, Vout now
@@ -84,4 +81,21 @@ func BlockDeletePrepare(tx *sql.Tx) (stmt *sql.Stmt, err error) {
 // BlockDeleteExec only need item.Height now
 func BlockDeleteExec(stmt *sql.Stmt, item Block) (result sql.Result, err error) {
 	return ExecPrepare(stmt, item.Height)
+}
+
+func TxCreatePrepare(tx *sql.Tx) (stmt *sql.Stmt, err error) {
+	return PrepareTx(tx, "INSERT INTO tx(txid, pre_txid, pre_vout) VALUES(?, ?, ?)")
+}
+
+func TxCreateExec(stmt *sql.Stmt, pre PreUtxo) (result sql.Result, err error) {
+	return ExecPrepare(stmt, pre.TxID, pre.PreTxID, pre.PreVout)
+}
+
+func TxDeletePrepare(tx *sql.Tx) (stmt *sql.Stmt, err error) {
+	return PrepareTx(tx, "DELETE FROM tx WHERE txid = ?")
+}
+
+// TxDeleteExec only need item.TxID now
+func TxDeleteExec(stmt *sql.Stmt, item PreUtxo) (result sql.Result, err error) {
+	return ExecPrepare(stmt, item.TxID)
 }
