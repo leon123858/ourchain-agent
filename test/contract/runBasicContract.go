@@ -49,7 +49,7 @@ func main() {
 	}
 
 	// Generate block
-	blockHash, err = chain.GenerateBlock(1)
+	blockHash, err = chain.GenerateBlock(2)
 	if err != nil {
 		log.Fatal(err)
 	}

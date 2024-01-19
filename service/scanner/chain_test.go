@@ -1,12 +1,13 @@
 package scanner
 
 import (
-	ourchainrpc "github.com/leon123858/go-aid/service/rpc"
-	"github.com/leon123858/go-aid/service/sqlite"
+	"testing"
 )
 
-// ListUnspent list unspent utxo
-func ListUnspent(chain *ourchainrpc.Bitcoind, db *sqlite.Client, addressList []string, confirm int) (result *[]ourchainrpc.Unspent, err error) {
+func Test_localChain_SyncLength(t *testing.T) {
+	chain := initChain()
+	db := initDB()
+	var err error
 	curLocalChain := newChain(clientWrapper{
 		ChainType: LOCAL,
 		DB:        db,
@@ -17,16 +18,14 @@ func ListUnspent(chain *ourchainrpc.Bitcoind, db *sqlite.Client, addressList []s
 	})
 	err = curLocalChain.InitChainStep()
 	if err != nil {
-		return
+		t.Fatal(err)
 	}
 	err = curRemoteChain.InitChainStep()
 	if err != nil {
-		return
+		t.Fatal(err)
 	}
 	err = curLocalChain.SyncLength(curRemoteChain)
 	if err != nil {
-		return
+		t.Fatal(err)
 	}
-	result, err = curLocalChain.GetUnspent(addressList, confirm)
-	return
 }

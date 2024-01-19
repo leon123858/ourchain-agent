@@ -2,13 +2,17 @@ package sqlite
 
 import (
 	"database/sql"
+	"errors"
 	_ "github.com/mattn/go-sqlite3"
-	"strings"
 )
 
 type Client struct {
 	DbPath   string
 	Instance *sql.DB
+}
+
+func (client *Client) Error() error {
+	return errors.New("dbClient native error")
 }
 
 func New(client *Client) (err error) {
@@ -30,90 +34,142 @@ func (client *Client) Close() (err error) {
 	return err
 }
 
-func (client *Client) createUtxo(item utxo) (err error) {
-	if client.Instance == nil {
-		return err
+func (client *Client) GetFirstBlockInfo() ([]Block, error) {
+	row := client.Instance.QueryRow("SELECT * FROM block ORDER BY height DESC LIMIT 1")
+	var height uint64
+	var hash string
+	err := row.Scan(&height, &hash)
+	if errors.Is(err, sql.ErrNoRows) {
+		return []Block{}, nil
 	}
-	_, err = client.Instance.Exec("INSERT INTO utxo(id, vout, address, amount) VALUES(?, ?, ?, ?)", item.ID, item.Vout, item.Address, item.Amount)
-	return err
+	if err != nil {
+		return []Block{}, err
+	}
+	return []Block{{Height: height, Hash: hash}}, nil
 }
 
-func (client *Client) deleteUtxo(id string) (err error) {
-	if client.Instance == nil {
-		return err
+func (client *Client) GetBlockHash(height uint64) (string, error) {
+	row := client.Instance.QueryRow("SELECT hash FROM block WHERE height = ?", height)
+	var hash string
+	err := row.Scan(&hash)
+	if err != nil {
+		return "", err
 	}
-	_, err = client.Instance.Exec("DELETE FROM utxo WHERE id=?", id)
-	return err
+	return hash, nil
 }
 
-func (client *Client) createUtxoList(utxoList []utxo) (err error) {
-	tx, err := client.Instance.Begin()
+func (client *Client) GetAddressUtxo(address string, maxHeight int) (*[]Utxo, error) {
+	rows, err := client.Instance.Query("SELECT * FROM utxo WHERE address = ? AND block_height <= ? AND is_spent = 0", address, maxHeight)
 	if err != nil {
-		return err
-	}
-	prepare, err := tx.Prepare("INSERT INTO utxo(id, vout, address, amount) VALUES(?, ?, ?, ?)")
-	if err != nil {
-		return err
-	}
-	for _, item := range utxoList {
-		_, err = prepare.Exec(item.ID, item.Vout, item.Address, item.Amount)
-		if err != nil {
-			return err
-		}
-	}
-	return tx.Commit()
-}
-
-func (client *Client) deleteUtxoList(idList []string) (err error) {
-	tx, err := client.Instance.Begin()
-	if err != nil {
-		return err
-	}
-	prepare, err := tx.Prepare("DELETE FROM utxo WHERE id=?")
-	if err != nil {
-		return err
-	}
-	for _, id := range idList {
-		_, err = prepare.Exec(id)
-		if err != nil {
-			return err
-		}
-	}
-	return tx.Commit()
-}
-
-func (client *Client) getUtxoList(arg utxoSearchArgument) (result []utxo, err error) {
-	var args []interface{}
-	var conditions []string
-	queryStr := "SELECT id, vout, address, amount FROM utxo"
-	if arg.ID != "" {
-		conditions = append(conditions, "id = ?")
-		args = append(args, arg.ID)
-	}
-	if arg.Address != "" {
-		conditions = append(conditions, "address = ?")
-		args = append(args, arg.Address)
-	}
-	if len(conditions) > 0 {
-		queryStr += " WHERE " + strings.Join(conditions, " AND ")
-	}
-	rows, err := client.Instance.Query(queryStr, args...)
-	if err != nil {
-		return result, err
+		return &[]Utxo{}, err
 	}
 	defer func(rows *sql.Rows) {
-		err = rows.Close()
-		if err != nil {
-			return
+		e := rows.Close()
+		if e != nil {
+			panic(e)
 		}
 	}(rows)
+	var result []Utxo
 	for rows.Next() {
-		var item utxo
-		err = rows.Scan(&item.ID, &item.Vout, &item.Address, &item.Amount)
+		var utxo Utxo
+		err = rows.Scan(&utxo.ID, &utxo.Vout, &utxo.Address, &utxo.Amount, &utxo.IsSpent, &utxo.BlockHeight)
 		if err != nil {
-			return result, err
+			return &[]Utxo{}, err
 		}
-		result = append(result, item)
+		result = append(result, utxo)
 	}
-	return result, err
+	return &result, nil
+}
+
+func (client *Client) GetAllUtxo(maxHeight int) (*[]Utxo, error) {
+	rows, err := client.Instance.Query("SELECT * FROM utxo WHERE block_height <= ? AND is_spent = 0", maxHeight)
+	if err != nil {
+		return &[]Utxo{}, err
+	}
+	defer func(rows *sql.Rows) {
+		e := rows.Close()
+		if e != nil {
+			panic(e)
+		}
+	}(rows)
+	var result []Utxo
+	for rows.Next() {
+		var utxo Utxo
+		err = rows.Scan(&utxo.ID, &utxo.Vout, &utxo.Address, &utxo.Amount, &utxo.IsSpent, &utxo.BlockHeight)
+		if err != nil {
+			return &[]Utxo{}, err
+		}
+		result = append(result, utxo)
+	}
+	return &result, nil
+}
+
+func (client *Client) GetUtxoByHeight(height uint64) (*[]Utxo, error) {
+	rows, err := client.Instance.Query("SELECT * FROM utxo WHERE block_height = ?", height)
+	if err != nil {
+		return &[]Utxo{}, err
+	}
+	defer func(rows *sql.Rows) {
+		e := rows.Close()
+		if e != nil {
+			panic(e)
+		}
+	}(rows)
+	var result []Utxo
+	for rows.Next() {
+		var utxo Utxo
+		err = rows.Scan(&utxo.ID, &utxo.Vout, &utxo.Address, &utxo.Amount, &utxo.IsSpent, &utxo.BlockHeight)
+		if err != nil {
+			return &[]Utxo{}, err
+		}
+		result = append(result, utxo)
+	}
+	return &result, nil
+}
+
+func (client *Client) GetPreUtxo(txid string) (*[]PreUtxo, error) {
+	rows, err := client.Instance.Query("SELECT pre_txid, pre_vout FROM tx WHERE txid = ?", txid)
+	if err != nil {
+		return &[]PreUtxo{}, err
+	}
+	defer func(rows *sql.Rows) {
+		e := rows.Close()
+		if e != nil {
+			panic(e)
+		}
+	}(rows)
+	var result []PreUtxo
+	for rows.Next() {
+		var preTxID string
+		var preVout int
+		err := rows.Scan(&preTxID, &preVout)
+		if err != nil {
+			return &result, err
+		}
+		result = append(result, PreUtxo{PreTxID: preTxID, PreVout: preVout, TxID: txid})
+	}
+	return &result, nil
+}
+
+func (client *Client) GetBlockTxList(height uint64) (*[]string, error) {
+	rows, err := client.Instance.Query("SELECT DISTINCT id FROM utxo WHERE block_height = ?", height)
+	if err != nil {
+		return &[]string{}, err
+	}
+	defer func(rows *sql.Rows) {
+		e := rows.Close()
+		if e != nil {
+			panic(e)
+		}
+	}(rows)
+	var result []string
+	for rows.Next() {
+		var txid string
+		err := rows.Scan(&txid)
+		if err != nil {
+			return &result, err
+		}
+		result = append(result, txid)
+	}
+	return &result, nil
 }

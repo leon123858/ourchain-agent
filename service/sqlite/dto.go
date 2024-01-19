@@ -1,12 +1,21 @@
 package sqlite
 
-type utxo struct {
-	utxoSearchArgument
-	Vout   int
-	Amount float64
+type Utxo struct {
+	ID          string // txid
+	Address     string
+	Vout        int
+	Amount      float64
+	IsSpent     bool
+	BlockHeight uint64
 }
 
-type utxoSearchArgument struct {
-	ID      string
-	Address string
+type Block struct {
+	Height uint64
+	Hash   string
+}
+
+type PreUtxo struct {
+	TxID    string
+	PreTxID string
+	PreVout int
 }

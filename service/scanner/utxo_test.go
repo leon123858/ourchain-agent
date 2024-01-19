@@ -2,6 +2,7 @@ package scanner
 
 import (
 	"github.com/leon123858/go-aid/service/rpc"
+	"github.com/leon123858/go-aid/service/sqlite"
 	"github.com/leon123858/go-aid/utils"
 	"log"
 	"testing"
@@ -24,9 +25,13 @@ func initChain() *our_chain_rpc.Bitcoind {
 
 func TestListUnspent(t *testing.T) {
 	chain := initChain()
-	list, err := ListUnspent(chain, []string{"mvehVE6vb5yqoZ4FSeNmJpjacddSdWhh3A"}, 6)
+	db := sqlite.Client{}
+	if sqlite.New(&db) != nil {
+		log.Fatal("sqlite init failed")
+	}
+	_, err := ListUnspent(chain, &db, []string{"mjynSV5ztd1qKmqR2npEpp4HDUL9xvW5WU"}, 100)
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Logf("List Unspent: %+v", list)
+	//t.Logf("List Unspent: %+v", list)
 }

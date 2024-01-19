@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/leon123858/go-aid/service/rpc"
 	"github.com/leon123858/go-aid/service/scanner"
+	"github.com/leon123858/go-aid/service/sqlite"
 	"github.com/leon123858/go-aid/utils"
 	"log"
 )
@@ -18,6 +19,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	db := sqlite.Client{}
+	if sqlite.New(&db) != nil {
+		log.Fatal("sqlite init failed")
+	}
 
 	// Get balance
 	balance, err := chain.GetBalance("", 1)
@@ -27,13 +32,13 @@ func main() {
 	log.Printf("Balance: %f", balance)
 
 	// Get unspent
-	unspentList, err := scanner.ListUnspent(chain, []string{}, 100)
+	unspentList, err := scanner.ListUnspent(chain, &db, []string{}, 100)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fee := 0.001
 	var unspent our_chain_rpc.Unspent
-	for _, item := range unspentList {
+	for _, item := range *unspentList {
 		if item.Amount > fee {
 			unspent = item
 			break
@@ -107,4 +112,5 @@ func main() {
 		log.Fatal(err)
 	}
 	log.Printf("Contract state: %s", state)
+	log.Printf("should output Contract state: [\"baby cute\",1,true,\"pure click: 3\"]\n")
 }

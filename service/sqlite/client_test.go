@@ -10,14 +10,13 @@ func setUp() Client {
 	if New(&dbClient) != nil {
 		panic("New dbClient failed")
 	}
+	if err := ClearTables(dbClient.Instance); err != nil {
+		panic("Clear tables failed")
+	}
 	return dbClient
 }
 
 func tearDown(dbClient Client) {
-	_, err := dbClient.Instance.Exec("DELETE FROM utxo")
-	if err != nil {
-		panic("Delete utxo in teardown failed")
-	}
 	if dbClient.Close() != nil {
 		panic("Close dbClient failed")
 	}
@@ -52,132 +51,49 @@ func TestClient_Close(t *testing.T) {
 	}
 }
 
-func TestClient_createUtxo(t *testing.T) {
-	dbClient := setUp()
-	err := dbClient.createUtxo(utxo{
-		utxoSearchArgument: utxoSearchArgument{
-			ID:      "test",
-			Address: "test",
-		},
-		Vout:   10,
-		Amount: 20,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	tearDown(dbClient)
-}
-
-func TestClient_createUtxoList(t *testing.T) {
-	dbClient := setUp()
-	err := dbClient.createUtxoList([]utxo{
-		{
-			utxoSearchArgument: utxoSearchArgument{
-				ID:      "test1",
-				Address: "test",
-			},
-			Vout:   11,
-			Amount: 20,
-		},
-		{
-			utxoSearchArgument: utxoSearchArgument{
-				ID:      "test2",
-				Address: "test",
-			},
-			Vout:   12,
-			Amount: 20,
-		},
-		{
-			utxoSearchArgument: utxoSearchArgument{
-				ID:      "test3",
-				Address: "test",
-			},
-			Vout:   10,
-			Amount: 20,
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	tearDown(dbClient)
-}
-
-func TestClient_deleteUtxo(t *testing.T) {
+func TestClient_GetFirstBlockInfo(t *testing.T) {
 	client := setUp()
-	err := client.createUtxo(utxo{
-		utxoSearchArgument: utxoSearchArgument{
-			ID:      "test",
-			Address: "test",
-		},
-		Vout:   10,
-		Amount: 20,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = client.deleteUtxo("test")
-	if err != nil {
-		t.Fatal(err)
-	}
-}
 
-func TestClient_deleteUtxoList(t *testing.T) {
-	client := setUp()
-	err := client.createUtxoList([]utxo{
-		{
-			utxoSearchArgument: utxoSearchArgument{
-				ID:      "test1",
-				Address: "test",
-			},
-			Vout:   11,
-			Amount: 20,
-		},
-		{
-			utxoSearchArgument: utxoSearchArgument{
-				ID:      "test2",
-				Address: "test",
-			},
-			Vout:   12,
-			Amount: 20,
-		},
-	})
+	var err error
+	// get first block info and get error because of no data
+	blocks, err := client.GetFirstBlockInfo()
+	if err != nil {
+		t.Fatal("should not error when no data")
+	}
+	assert.Equal(t, len(blocks), 0)
+	// insert data
+	client.Instance.Exec("INSERT INTO block(height, hash) VALUES(?, ?)", 1, "hash1")
+	// get first block info and get data now
+	blocks, err = client.GetFirstBlockInfo()
 	if err != nil {
 		t.Fatal(err)
 	}
-	result, _ := client.getUtxoList(utxoSearchArgument{})
-	if len(result) != 2 {
-		t.Fatal("createUtxoList failed")
-	}
-	err = client.deleteUtxoList([]string{"test1", "test2"})
+	assert.Equal(t, blocks[0].Height, uint64(1))
+	assert.Equal(t, blocks[0].Hash, "hash1")
+	// insert more data
+	client.Instance.Exec("INSERT INTO block(height, hash) VALUES(?, ?)", 2, "hash2")
+	// get first block info and get data now
+	blocks, err = client.GetFirstBlockInfo()
 	if err != nil {
 		t.Fatal(err)
 	}
+	assert.Equal(t, blocks[0].Height, uint64(2))
+	assert.Equal(t, blocks[0].Hash, "hash2")
+
 	tearDown(client)
 }
 
-func TestClient_getUtxoList(t *testing.T) {
+func TestClient_GetPreUtxo(t *testing.T) {
 	client := setUp()
-	err := client.createUtxo(utxo{
-		utxoSearchArgument: utxoSearchArgument{
-			ID:      "test",
-			Address: "test",
-		},
-		Vout:   10,
-		Amount: 20,
-	})
+
+	var err error
+	// get first block info and get error because of no data
+	utxos, err := client.GetPreUtxo("emptyTxID")
 	if err != nil {
-		return
+		t.Fatal("should not error when no data")
 	}
-	utxoList, err := client.getUtxoList(utxoSearchArgument{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	// print utxoList
-	for _, item := range utxoList {
-		assert.Equal(t, item.ID, "test")
-		assert.Equal(t, item.Address, "test")
-		assert.Equal(t, item.Vout, 10)
-		assert.Equal(t, item.Amount, 20.0)
-	}
+	assert.Equal(t, len(*utxos), 0)
+	// insert data
+
 	tearDown(client)
 }

@@ -1,4 +1,4 @@
-package model
+package controller
 
 import (
 	chain "github.com/leon123858/go-aid/service/rpc"
