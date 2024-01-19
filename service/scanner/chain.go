@@ -4,6 +4,7 @@ import (
 	"errors"
 	ourchainrpc "github.com/leon123858/go-aid/service/rpc"
 	"github.com/leon123858/go-aid/service/sqlite"
+	"sync"
 )
 
 type clientWrapper struct {
@@ -30,12 +31,14 @@ const (
 	REMOTE ChainType = "remote"
 )
 
+var dbCriticalSection = sync.Mutex{}
+
 type abstractChain interface {
 	GetBlockChainInfo() (result chainInfo)
 	InitChainStep() (err error)
 	GetName() (result ChainType)
 	SyncLength(remote abstractChain) (err error)
-	GetUnspent(addressList []string, confirm int) (result []ourchainrpc.Unspent, err error)
+	GetUnspent(addressList []string, confirm int) (result *[]ourchainrpc.Unspent, err error)
 }
 
 type remoteChain struct {
@@ -125,12 +128,18 @@ func (chain *localChain) InitChainStep() (err error) {
 }
 
 func (chain *localChain) SyncLength(remote abstractChain) (err error) {
+	dbCriticalSection.Lock()
+	defer dbCriticalSection.Unlock()
+	if err = chain.InitChainStep(); err != nil {
+		return err
+	}
 	info := remote.GetBlockChainInfo()
 	rpc := info.RPC
-	if rpc == nil || chain.Client == nil {
-		return errors.New("rpc or db is nil")
-	}
 	if e := minusBlocksToSame(chain, rpc, info.Length); e != nil {
+		return e
+	}
+	// update length
+	if e := chain.InitChainStep(); e != nil {
 		return e
 	}
 	if chain.Length < info.Length {
@@ -141,15 +150,53 @@ func (chain *localChain) SyncLength(remote abstractChain) (err error) {
 	return nil
 }
 
-func (chain *remoteChain) SyncLength(remote abstractChain) (err error) {
+func (chain *remoteChain) SyncLength(abstractChain) (err error) {
 	panic("should not sync length for remote chain")
 }
 
-func (chain *remoteChain) GetUnspent(addressList []string, confirm int) (result []ourchainrpc.Unspent, err error) {
+func (chain *remoteChain) GetUnspent([]string, int) (result *[]ourchainrpc.Unspent, err error) {
 	panic("should not get unspent for remote chain")
 }
 
-func (chain *localChain) GetUnspent(addressList []string, confirm int) (result []ourchainrpc.Unspent, err error) {
-	// TODO: get unspent from local db
+func (chain *localChain) GetUnspent(addressList []string, confirm int) (result *[]ourchainrpc.Unspent, err error) {
+	list := make([]ourchainrpc.Unspent, 0)
+	result = &list
+	dbClient := chain.Client
+	if dbClient.Instance == nil {
+		return nil, errors.New("db is nil")
+	}
+	if len(addressList) == 0 {
+		var rows *[]sqlite.Utxo
+		rows, err = dbClient.GetAllUtxo(int(chain.Length) - confirm)
+		if err != nil {
+			return nil, err
+		}
+		for _, row := range *rows {
+			*result = append(*result, ourchainrpc.Unspent{
+				Txid:          row.ID,
+				Vout:          row.Vout,
+				Address:       row.Address,
+				Amount:        row.Amount,
+				Confirmations: int(chain.Length) - int(row.BlockHeight),
+			})
+		}
+		return
+	}
+	for _, address := range addressList {
+		var rows *[]sqlite.Utxo
+		rows, err := dbClient.GetAddressUtxo(address, int(chain.Length)-confirm)
+		if err != nil {
+			return nil, err
+		}
+		for _, row := range *rows {
+			*result = append(*result, ourchainrpc.Unspent{
+				Txid:          row.ID,
+				Vout:          row.Vout,
+				Address:       row.Address,
+				Amount:        row.Amount,
+				Confirmations: int(chain.Length) - int(row.BlockHeight),
+			})
+		}
+	}
 	return
 }

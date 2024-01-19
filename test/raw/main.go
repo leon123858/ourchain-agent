@@ -38,7 +38,7 @@ func main() {
 	}
 	fee := 0.001
 	var unspent our_chain_rpc.Unspent
-	for _, item := range unspentList {
+	for _, item := range *unspentList {
 		if item.Amount > fee {
 			unspent = item
 			break
@@ -112,4 +112,5 @@ func main() {
 		log.Fatal(err)
 	}
 	log.Printf("Contract state: %s", state)
+	log.Printf("should output Contract state: [\"baby cute\",1,true,\"pure click: 3\"]\n")
 }

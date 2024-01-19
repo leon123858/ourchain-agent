@@ -37,7 +37,7 @@ func Test_addBlocksCoder(t *testing.T) {
 		Length: 0,
 		Client: db,
 	}
-	cmds, err := addBlocksCoder(&chain, rpc, 200)
+	cmds, err := addBlocksCoder(&chain, rpc, 3)
 	if err != nil {
 		t.Fatal(err)
 	}

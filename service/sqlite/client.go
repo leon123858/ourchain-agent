@@ -81,6 +81,52 @@ func (client *Client) GetAddressUtxo(address string, maxHeight int) (*[]Utxo, er
 	return &result, nil
 }
 
+func (client *Client) GetAllUtxo(maxHeight int) (*[]Utxo, error) {
+	rows, err := client.Instance.Query("SELECT * FROM utxo WHERE block_height <= ? AND is_spent = 0", maxHeight)
+	if err != nil {
+		return &[]Utxo{}, err
+	}
+	defer func(rows *sql.Rows) {
+		e := rows.Close()
+		if e != nil {
+			panic(e)
+		}
+	}(rows)
+	var result []Utxo
+	for rows.Next() {
+		var utxo Utxo
+		err = rows.Scan(&utxo.ID, &utxo.Vout, &utxo.Address, &utxo.Amount, &utxo.IsSpent, &utxo.BlockHeight)
+		if err != nil {
+			return &[]Utxo{}, err
+		}
+		result = append(result, utxo)
+	}
+	return &result, nil
+}
+
+func (client *Client) GetUtxoByHeight(height uint64) (*[]Utxo, error) {
+	rows, err := client.Instance.Query("SELECT * FROM utxo WHERE block_height = ?", height)
+	if err != nil {
+		return &[]Utxo{}, err
+	}
+	defer func(rows *sql.Rows) {
+		e := rows.Close()
+		if e != nil {
+			panic(e)
+		}
+	}(rows)
+	var result []Utxo
+	for rows.Next() {
+		var utxo Utxo
+		err = rows.Scan(&utxo.ID, &utxo.Vout, &utxo.Address, &utxo.Amount, &utxo.IsSpent, &utxo.BlockHeight)
+		if err != nil {
+			return &[]Utxo{}, err
+		}
+		result = append(result, utxo)
+	}
+	return &result, nil
+}
+
 func (client *Client) GetPreUtxo(txid string) (*[]PreUtxo, error) {
 	rows, err := client.Instance.Query("SELECT pre_txid, pre_vout FROM tx WHERE txid = ?", txid)
 	if err != nil {
@@ -101,6 +147,29 @@ func (client *Client) GetPreUtxo(txid string) (*[]PreUtxo, error) {
 			return &result, err
 		}
 		result = append(result, PreUtxo{PreTxID: preTxID, PreVout: preVout, TxID: txid})
+	}
+	return &result, nil
+}
+
+func (client *Client) GetBlockTxList(height uint64) (*[]string, error) {
+	rows, err := client.Instance.Query("SELECT DISTINCT id FROM utxo WHERE block_height = ?", height)
+	if err != nil {
+		return &[]string{}, err
+	}
+	defer func(rows *sql.Rows) {
+		e := rows.Close()
+		if e != nil {
+			panic(e)
+		}
+	}(rows)
+	var result []string
+	for rows.Next() {
+		var txid string
+		err := rows.Scan(&txid)
+		if err != nil {
+			return &result, err
+		}
+		result = append(result, txid)
 	}
 	return &result, nil
 }

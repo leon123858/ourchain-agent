@@ -49,7 +49,7 @@ func UtxoUpdatePrepare(tx *sql.Tx) (stmt *sql.Stmt, err error) {
 }
 
 func UtxoDeletePrepare(tx *sql.Tx) (stmt *sql.Stmt, err error) {
-	return PrepareTx(tx, "DELETE FROM utxo WHERE id = ? AND vout = ?")
+	return PrepareTx(tx, "DELETE FROM utxo WHERE block_height = ?")
 }
 
 func UtxoCreateExec(stmt *sql.Stmt, item Utxo) (result sql.Result, err error) {
@@ -61,9 +61,9 @@ func UtxoUpdateExec(stmt *sql.Stmt, item Utxo) (result sql.Result, err error) {
 	return ExecPrepare(stmt, item.IsSpent, item.ID, item.Vout)
 }
 
-// UtxoDeleteExec only need item.ID, Vout now
+// UtxoDeleteExec only need item.BlockHeight now
 func UtxoDeleteExec(stmt *sql.Stmt, item Utxo) (result sql.Result, err error) {
-	return ExecPrepare(stmt, item.ID, item.Vout)
+	return ExecPrepare(stmt, item.BlockHeight)
 }
 
 func BlockCreatePrepare(tx *sql.Tx) (stmt *sql.Stmt, err error) {
