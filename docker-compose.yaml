@@ -3,7 +3,7 @@ services:
   web: # web server 80
     image: leon1234858/ourchain-web-cli
     ports:
-      - "80:80"
+      - "8000:80"
     networks:
       my_network:
         ipv4_address: 172.16.238.9
