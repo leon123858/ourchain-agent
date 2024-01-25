@@ -23,8 +23,8 @@ func main() {
 		log.Fatal(err)
 	}
 	sqliteClient := sqlite.Client{}
-	if sqlite.New(&sqliteClient) != nil {
-		log.Fatal("sqlite init failed")
+	if err = sqlite.New(&sqliteClient); err != nil {
+		log.Fatal("sqlite init failed: ", err.Error())
 	}
 	repositoryDTO := controller.RepositoryDTO{Chain: chain, Database: &sqliteClient}
 

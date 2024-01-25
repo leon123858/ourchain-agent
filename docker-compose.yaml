@@ -1,7 +1,14 @@
 version: '3'
 services:
-  webapp:
-    image: go-aid
+  web: # web server 80
+    image: leon1234858/ourchain-web-cli
+    ports:
+      - "80:80"
+    networks:
+      my_network:
+        ipv4_address: 172.16.238.9
+  webapi: # web api 8080
+    image: leon1234858/go-aid
     ports:
       - "8080:8080"
     networks:
@@ -9,8 +16,8 @@ services:
         ipv4_address: 172.16.238.10
     environment:
       APP_HOST: 172.16.238.11
-  chain:
-    image: our-chain
+  chain: # chain server connected by web api
+    image: leon1234858/our-chain
     networks:
       my_network:
         ipv4_address: 172.16.238.11
