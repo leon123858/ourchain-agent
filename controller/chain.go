@@ -28,7 +28,7 @@ func GenerateChainGetController(dto RepositoryDTO, which string) echo.HandlerFun
 			if address == "" {
 				target = []string{}
 			}
-			list, err := scanner.ListUnspent(dto.Chain, dto.Database, target, 100)
+			list, err := scanner.ListUnspent(dto.Chain, dto.Database, target, 2)
 			return customResponseHandler(ctx, err, list)
 		}
 	case "getBalance":

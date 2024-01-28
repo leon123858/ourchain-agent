@@ -21,6 +21,16 @@ services:
     networks:
       my_network:
         ipv4_address: 172.16.238.11
+    volumes:
+        - node_data:/root/.bitcoin
+  miner_service:
+    image: node:lts-alpine3.19  # 使用官方 Node.js 镜像
+    volumes:
+      - ./script.mjs:/root/script.mjs
+    command: [ "node", "/root/script.mjs" ]
+    networks:
+      my_network:
+        ipv4_address: 172.16.238.12
 
 networks:
   my_network:
@@ -28,3 +38,6 @@ networks:
       driver: default
       config:
         - subnet: 172.16.238.0/24
+volumes:
+  node_data:
+    external: true
