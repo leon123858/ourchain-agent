@@ -13,8 +13,8 @@ async function main() {
 	 while (true) {
 		try {
 			await mineBlock();
-			// wait 2 second
-			await new Promise(resolve => setTimeout(resolve, 2*1000));
+			// wait 10 second
+			await new Promise(resolve => setTimeout(resolve, 10*1000));
 		} catch (e) {
 			console.log(e);
 		}
