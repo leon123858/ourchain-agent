@@ -20,13 +20,26 @@ async function mineBlock(address) {
 }
 
 async function main() {
+    let address = "";
     // get new address
-    const address = await getNewAddress();
     while (true) {
+        try {
+            const tmp = await getNewAddress();
+            console.log(`address: ${address}`);
+            address = tmp;
+            break;
+        } catch (e) {
+            console.log(e);
+        }
+    }
+    while (true) {
+        if(address === "") {
+            throw new Error("address is empty");
+        }
         try {
             await mineBlock(address);
             // wait 10 second
-            await new Promise(resolve => setTimeout(resolve, 10 * 1000));
+            // await new Promise(resolve => setTimeout(resolve, 10 * 1000));
         } catch (e) {
             console.log(e);
         }
