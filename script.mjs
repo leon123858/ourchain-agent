@@ -24,6 +24,8 @@ async function main() {
     // get new address
     while (true) {
         try {
+            // wait 10 second
+            await new Promise(resolve => setTimeout(resolve, 10 * 1000));
             const tmp = await getNewAddress();
             console.log(`address: ${address}`);
             address = tmp;
