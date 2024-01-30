@@ -22,7 +22,7 @@ services:
       my_network:
         ipv4_address: 172.16.238.11
     volumes:
-        - node_data:/root/.bitcoin
+      - node_data:/root/.bitcoin
   miner_service:
     image: node:lts-alpine3.19  # 使用官方 Node.js 镜像
     volumes:

@@ -40,6 +40,7 @@ func main() {
 	getGroup.GET("/privatekey", controller.GenerateChainGetController(repositoryDTO, "getPrivateKey")) // just used for node owner
 	getGroup.GET("/transaction", controller.GenerateChainGetController(repositoryDTO, "getTransaction"))
 	getGroup.GET("/utxo", controller.GenerateChainGetController(repositoryDTO, "getUnspent"))
+	getGroup.GET("/newaddress", controller.GenerateChainGetController(repositoryDTO, "getNewAddress"))
 
 	getGroup.POST("/contractmessage", controller.GenerateChainPostController(repositoryDTO, "dumpContractMessage"))
 

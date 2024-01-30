@@ -71,3 +71,21 @@ func TestBitcoind_GenerateBlock(t *testing.T) {
 	}
 	t.Logf("Block Hash: %+v", blockHash)
 }
+
+func TestBitcoind_GetNewAddress(t *testing.T) {
+	chain := initChain()
+	address, err := chain.GetNewAddress()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("Address: %+v", address)
+}
+
+func TestBitcoind_GenerateToAddress(t *testing.T) {
+	chain := initChain()
+	blockHash, err := chain.GenerateToAddress(3, "2N8hwP1WmJrFF5QWABn38y63uYLhnJYJYTF")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("Block Hash: %+v", blockHash)
+}

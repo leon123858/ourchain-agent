@@ -8,6 +8,16 @@ import (
 	"strings"
 )
 
+// GetNewAddress return a new address of the server. can only be used for node owner!
+func (b *Bitcoind) GetNewAddress() (address string, err error) {
+	r, err := b.client.call("getnewaddress", []interface{}{})
+	if err = handleError(err, &r); err != nil {
+		return
+	}
+	address = strings.Trim(string(r.Result), "\"")
+	return
+}
+
 // GetBalance return the balance of the server or of a specific account. can only be used for node owner!
 // If [account] is "", returns the server's total available balance.
 // If [minconf] is min confirm for coin should be counted.
@@ -118,10 +128,29 @@ func (b *Bitcoind) DumpContractMessage(contractAddress string, contractData []st
 // GenerateBlock generate a block in the ourChain, return the block hash.
 // blockData is the data of the block.
 func (b *Bitcoind) GenerateBlock(count uint64) (blockHash []string, err error) {
-	if count > 101 {
-		return []string{}, errors.New("count should not be greater than 101")
+	if count > 11 {
+		return []string{}, errors.New("count should not be greater than 11")
 	}
 	rpcResponse, err := b.client.call("generate", []uint64{count})
+	if err = handleError(err, &rpcResponse); err != nil {
+		return []string{}, err
+	}
+	result := []string{}
+	// convert []byte to json
+	err = json.Unmarshal(rpcResponse.Result, &result)
+	if err != nil {
+		return []string{}, err
+	}
+	return result, nil
+}
+
+// GenerateToAddress generate a block in the ourChain, return the block hash.
+// blockData is the data of the block.
+func (b *Bitcoind) GenerateToAddress(count uint64, address string) (blockHash []string, err error) {
+	if count > 11 {
+		return []string{}, errors.New("count should not be greater than 11")
+	}
+	rpcResponse, err := b.client.call("generatetoaddress", []interface{}{count, address})
 	if err = handleError(err, &rpcResponse); err != nil {
 		return []string{}, err
 	}

@@ -32,7 +32,7 @@ func main() {
 	log.Printf("Balance: %f", balance)
 
 	// Get unspent
-	unspentList, err := scanner.ListUnspent(chain, &db, []string{}, 100)
+	unspentList, err := scanner.ListUnspent(chain, &db, []string{}, 2)
 	if err != nil {
 		log.Fatal(err)
 	}

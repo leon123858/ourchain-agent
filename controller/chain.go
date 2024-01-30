@@ -31,6 +31,11 @@ func GenerateChainGetController(dto RepositoryDTO, which string) echo.HandlerFun
 			list, err := scanner.ListUnspent(dto.Chain, dto.Database, target, 2)
 			return customResponseHandler(ctx, err, list)
 		}
+	case "getNewAddress":
+		return func(ctx echo.Context) error {
+			address, err := dto.Chain.GetNewAddress()
+			return customResponseHandler(ctx, err, address)
+		}
 	case "getBalance":
 		return func(ctx echo.Context) error {
 			address := ctx.QueryParam("address")
@@ -58,7 +63,12 @@ func GenerateChainPostController(dto RepositoryDTO, which string) echo.HandlerFu
 	switch which {
 	case "generateBlock":
 		return func(ctx echo.Context) error {
-			blockIds, err := dto.Chain.GenerateBlock(1)
+			address := ctx.QueryParam("address")
+			if address == "" {
+				blockIds, err := dto.Chain.GenerateBlock(1)
+				return customResponseHandler(ctx, err, blockIds)
+			}
+			blockIds, err := dto.Chain.GenerateToAddress(1, address)
 			return customResponseHandler(ctx, err, blockIds)
 		}
 	case "dumpContractMessage":

@@ -9,11 +9,13 @@ read functional test in [test](./test) directory
 ## How to use docker-compose to deploy?
 
 quick start:
+
 1. run `docker volume create node_data` start disk volume
 2. run `docker-compose up -d` in this project root directory
 3. use `docker-compose down` in this project root directory to stop container
 
 note:
+
 - `docker volume create node_data` 建立 node_data volume 作為節點資料外部儲存區
 - `docker volume rm node_data` 刪除 node_data volume
 - `docker-compose up -d` 啟動容器群集
@@ -22,7 +24,6 @@ note:
 - `docker run -it --rm -v node_data:/node busybox sh` 進入節點資料外部儲存區
 - `docker-compose logs -f` 查看容器群集日誌
 - `docker-compose ps` 查看容器群集狀態
-
 
 ## How to use nginx to proxy aid services?
 
