@@ -41,7 +41,7 @@ async function main() {
         try {
             await mineBlock(address);
             // wait 10 second
-            // await new Promise(resolve => setTimeout(resolve, 10 * 1000));
+            await new Promise(resolve => setTimeout(resolve, 10 * 1000));
         } catch (e) {
             console.log(e);
         }
