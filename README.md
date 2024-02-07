@@ -22,6 +22,7 @@ note:
 - `docker-compose down` 停止容器群集
 - `docker-compose pull` 更新容器群集
 - `docker run -it --rm -v node_data:/node busybox sh` 進入節點資料外部儲存區
+- `sudo docker exec -it go-aid-chain-1 /bin/bash` 進入區塊鏈(可以用 `bitcoin-cli generate 1` 重置)
 - `docker-compose logs -f` 查看容器群集日誌
 - `docker-compose ps` 查看容器群集狀態
 
