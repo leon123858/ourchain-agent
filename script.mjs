@@ -16,6 +16,7 @@ async function mineBlock(address) {
         headers: {
             'Content-Type': 'application/json',
         },
+        timeout: 10*60*1000, // 10 minutes
     });
 }
 
