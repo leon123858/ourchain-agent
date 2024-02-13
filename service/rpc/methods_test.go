@@ -44,7 +44,7 @@ func TestBitcoind_GetBlock(t *testing.T) {
 
 func TestBitcoind_GetRawTransaction(t *testing.T) {
 	//chain := initChain()
-	//_, err := chain.GetRawTransaction("82e828404ba561e12483c97d486cad7fc6fa1f1beaf450c9d7028efcc5304dbd")
+	//tx, err := chain.GetRawTransaction("e33e0ea7369fbfe50ad123e08b3f7d8e6afdc3c025780dec1e654117788fbe04")
 	//if err != nil {
 	//	t.Fatal(err)
 	//}

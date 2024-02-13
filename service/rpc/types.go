@@ -110,19 +110,21 @@ type Vout struct {
 }
 
 type Transaction struct {
-	TxID          string `json:"txid"`
-	Hash          string `json:"hash"`
-	Version       int    `json:"version"`
-	Size          int    `json:"size"`
-	Vsize         int    `json:"vsize"`
-	Locktime      int    `json:"locktime"`
-	Vin           []Vin  `json:"vin"`
-	Vout          []Vout `json:"vout"`
-	Hex           string `json:"hex"`
-	BlockHash     string `json:"blockhash"`
-	Confirmations int    `json:"confirmations"`
-	Time          int    `json:"time"`
-	BlockTime     int    `json:"blocktime"`
+	TxID          string         `json:"txid"`
+	Hash          string         `json:"hash"`
+	Version       int            `json:"version"`
+	Size          int            `json:"size"`
+	Vsize         int            `json:"vsize"`
+	Locktime      int            `json:"locktime"`
+	Vin           []Vin          `json:"vin"`
+	Vout          []Vout         `json:"vout"`
+	Hex           string         `json:"hex"`
+	BlockHash     string         `json:"blockhash"`
+	Confirmations int            `json:"confirmations"`
+	Time          int            `json:"time"`
+	BlockTime     int            `json:"blocktime"`
+	Action        ContractAction `json:"contractAction"`
+	Contract      string         `json:"contractAddress"`
 }
 
 type ContractAction int
