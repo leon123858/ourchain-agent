@@ -63,7 +63,8 @@ func TestClient_GetFirstBlockInfo(t *testing.T) {
 	}
 	assert.Equal(t, len(blocks), 0)
 	// insert data
-	client.Instance.Exec("INSERT INTO block(height, hash) VALUES(?, ?)", 1, "hash1")
+	_, err = client.Instance.Exec("INSERT INTO block(height, hash) VALUES(?, ?)", 1, "hash1")
+	assert.Equal(t, err, nil)
 	// get first block info and get data now
 	blocks, err = client.GetFirstBlockInfo()
 	if err != nil {
@@ -72,7 +73,8 @@ func TestClient_GetFirstBlockInfo(t *testing.T) {
 	assert.Equal(t, blocks[0].Height, uint64(1))
 	assert.Equal(t, blocks[0].Hash, "hash1")
 	// insert more data
-	client.Instance.Exec("INSERT INTO block(height, hash) VALUES(?, ?)", 2, "hash2")
+	_, err = client.Instance.Exec("INSERT INTO block(height, hash) VALUES(?, ?)", 2, "hash2")
+	assert.Equal(t, err, nil)
 	// get first block info and get data now
 	blocks, err = client.GetFirstBlockInfo()
 	if err != nil {
