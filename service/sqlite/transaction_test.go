@@ -326,3 +326,31 @@ func TestPreUtxo(t *testing.T) {
 
 	tearDown(client)
 }
+
+func TestContract(t *testing.T) {
+	client := setUp()
+
+	tx, err := BeginTx(&client)
+	contract := Contract{
+		TxID:            "txhash",
+		ContractAddress: "contract_address",
+		ContractAction:  "contract_action",
+	}
+	stmt, err := ContractCreatePrepare(tx)
+	assert.Equal(t, err, nil)
+	_, err = ContractCreateExec(stmt, contract)
+	assert.Equal(t, err, nil)
+	err = CommitTx(tx)
+	assert.Equal(t, err, nil)
+
+	// delete it
+	tx, err = BeginTx(&client)
+	stmt, err = ContractDeletePrepare(tx)
+	assert.Equal(t, err, nil)
+	_, err = ContractDeleteExec(stmt, contract)
+	assert.Equal(t, err, nil)
+	err = CommitTx(tx)
+	assert.Equal(t, err, nil)
+
+	tearDown(client)
+}

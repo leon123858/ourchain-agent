@@ -99,3 +99,19 @@ func TxDeletePrepare(tx *sql.Tx) (stmt *sql.Stmt, err error) {
 func TxDeleteExec(stmt *sql.Stmt, item PreUtxo) (result sql.Result, err error) {
 	return ExecPrepare(stmt, item.TxID)
 }
+
+func ContractCreatePrepare(tx *sql.Tx) (stmt *sql.Stmt, err error) {
+	return PrepareTx(tx, "INSERT INTO contract(txid, contract_address, contract_action) VALUES(?, ?, ?)")
+}
+
+func ContractCreateExec(stmt *sql.Stmt, item Contract) (result sql.Result, err error) {
+	return ExecPrepare(stmt, item.TxID, item.ContractAddress, item.ContractAction)
+}
+
+func ContractDeletePrepare(tx *sql.Tx) (stmt *sql.Stmt, err error) {
+	return PrepareTx(tx, "DELETE FROM contract WHERE txid = ?")
+}
+
+func ContractDeleteExec(stmt *sql.Stmt, item Contract) (result sql.Result, err error) {
+	return ExecPrepare(stmt, item.TxID)
+}

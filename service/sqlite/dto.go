@@ -19,3 +19,9 @@ type PreUtxo struct {
 	PreTxID string
 	PreVout int
 }
+
+type Contract struct {
+	TxID            string
+	ContractAddress string
+	ContractAction  string
+}

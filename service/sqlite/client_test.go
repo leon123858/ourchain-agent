@@ -11,6 +11,7 @@ func setUp() Client {
 		panic("New dbClient failed")
 	}
 	if err := ClearTables(dbClient.Instance); err != nil {
+		println(err.Error())
 		panic("Clear tables failed")
 	}
 	return dbClient

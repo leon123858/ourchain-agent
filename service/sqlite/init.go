@@ -18,6 +18,9 @@ func initTables(db *sql.DB) (err error) {
 	if err = initTxTable(db); err != nil {
 		return err
 	}
+	if err = initContractTable(db); err != nil {
+		return err
+	}
 	_, err = db.Exec("PRAGMA foreign_keys = ON")
 	if err != nil {
 		return err
@@ -64,9 +67,23 @@ func initTxTable(db *sql.DB) (err error) {
 	return err
 }
 
+func initContractTable(db *sql.DB) (err error) {
+	creatTable := `
+	CREATE TABLE IF NOT EXISTS contract(
+    "txid" TEXT PRIMARY KEY,
+    "contract_address" TEXT UNIQUE,
+    "contract_action" TEXT
+	);`
+	_, err = db.Exec(creatTable)
+	return err
+}
+
 func ClearTables(db *sql.DB) (err error) {
 	if db == nil {
 		return errors.New("db is nil")
+	}
+	if _, err = db.Exec("DELETE FROM contract"); err != nil {
+		return err
 	}
 	if _, err = db.Exec("DELETE FROM tx"); err != nil {
 		return err
