@@ -22,8 +22,8 @@ unit_test:
 
 function_test:
 	go fmt ./...
-	go run test/contract/runBasicContract.go
-	go run test/raw/main.go
+	go run script/contract/runBasicContract.go
+	go run script/raw/main.go
 
 doc:
 	echo "goto: http://localhost:3000/github.com/leon123858/go-aid"

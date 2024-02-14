@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 )
@@ -159,7 +160,9 @@ func (c *rpcClient) call(method string, params interface{}) (rr rpcResponse, err
 	if err != nil {
 		return
 	}
-
 	err = json.Unmarshal(data, &rr)
+	if err != nil {
+		log.Println("rpc json error:", string(data))
+	}
 	return
 }

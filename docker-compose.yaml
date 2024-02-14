@@ -26,7 +26,7 @@ services:
   miner_service:
     image: node:lts-alpine3.19  # 使用官方 Node.js 镜像
     volumes:
-      - ./script.mjs:/root/script.mjs
+      - ./script/miner.mjs:/root/script.mjs
     command: [ "node", "/root/script.mjs" ]
     networks:
       my_network:
