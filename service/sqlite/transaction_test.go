@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	our_chain_rpc "github.com/leon123858/go-aid/service/rpc"
 	"github.com/magiconair/properties/assert"
 	"testing"
 )
@@ -329,12 +330,11 @@ func TestPreUtxo(t *testing.T) {
 
 func TestContract(t *testing.T) {
 	client := setUp()
-
 	tx, err := BeginTx(&client)
 	contract := Contract{
 		TxID:            "txhash",
 		ContractAddress: "contract_address",
-		ContractAction:  "contract_action",
+		ContractAction:  our_chain_rpc.ContractNotExist,
 	}
 	stmt, err := ContractCreatePrepare(tx)
 	assert.Equal(t, err, nil)

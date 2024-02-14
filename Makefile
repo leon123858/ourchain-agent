@@ -15,6 +15,10 @@ deploy:
 	docker tag go-aid leon1234858/go-aid
 	docker push leon1234858/go-aid
 
+test:
+	make unit_test
+	make function_test
+
 unit_test:
 	go clean -testcache
 	go fmt ./...

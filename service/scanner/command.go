@@ -2,6 +2,7 @@ package scanner
 
 import (
 	"database/sql"
+	our_chain_rpc "github.com/leon123858/go-aid/service/rpc"
 	"github.com/leon123858/go-aid/service/sqlite"
 	"log"
 )
@@ -21,6 +22,8 @@ type rawCommand struct {
 }
 
 const (
+	RAW_ADD_TX         rawCommandType = "ADD_TX"
+	RAW_DELETE_TX      rawCommandType = "DELETE_TX"
 	RAW_ADD_BLOCK      rawCommandType = "ADD_BLOCK"
 	RAW_DELETE_BLOCK   rawCommandType = "DELETE_BLOCK"
 	RAW_ADD_UTXO       rawCommandType = "ADD_UTXO"
@@ -31,6 +34,7 @@ const (
 )
 
 const (
+	ADD_TX         commandType = "ADD_TX"
 	ADD_BLOCK      commandType = "ADD_BLOCK"
 	ADD_UTXO       commandType = "ADD_UTXO"
 	ADD_PREUTXO    commandType = "ADD_PREUTXO"
@@ -65,6 +69,10 @@ func (rc *rawCommand) Exec() (err error) {
 		_, err = sqlite.TxCreateExec(rc.Stmt, rc.item.(sqlite.PreUtxo))
 	case RAW_DELETE_PREUTXO:
 		_, err = sqlite.TxDeleteExec(rc.Stmt, rc.item.(sqlite.PreUtxo))
+	case RAW_ADD_TX:
+		_, err = sqlite.ContractCreateExec(rc.Stmt, rc.item.(sqlite.Contract))
+	case RAW_DELETE_TX:
+		_, err = sqlite.ContractDeleteExec(rc.Stmt, rc.item.(sqlite.Contract))
 	}
 	return
 }
@@ -88,6 +96,10 @@ func compileAdd(sqlTx *sql.Tx, commandList *[]command) (rawCommandList *[]rawCom
 	if err != nil {
 		return
 	}
+	contractCreateStmt, err := sqlite.ContractCreatePrepare(sqlTx)
+	if err != nil {
+		return
+	}
 	for _, cmd := range *commandList {
 		switch cmd.Type {
 		case ADD_BLOCK:
@@ -97,6 +109,17 @@ func compileAdd(sqlTx *sql.Tx, commandList *[]command) (rawCommandList *[]rawCom
 				item: sqlite.Block{
 					Height: cmd.args[0].(uint64),
 					Hash:   cmd.args[1].(string),
+				},
+			}
+			*rawCommandList = append(*rawCommandList, rawCmd)
+		case ADD_TX:
+			rawCmd := rawCommand{
+				Type: RAW_ADD_TX,
+				Stmt: contractCreateStmt,
+				item: sqlite.Contract{
+					TxID:            cmd.args[0].(string),
+					ContractAction:  cmd.args[1].(our_chain_rpc.ContractAction),
+					ContractAddress: cmd.args[2].(string),
 				},
 			}
 			*rawCommandList = append(*rawCommandList, rawCmd)
@@ -159,6 +182,10 @@ func compileMinus(sqlClient *sqlite.Client, sqlTx *sql.Tx, commandList *[]comman
 	if err != nil {
 		return
 	}
+	contractDeleteStmt, err := sqlite.ContractDeletePrepare(sqlTx)
+	if err != nil {
+		return
+	}
 	for _, cmd := range *commandList {
 		switch cmd.Type {
 		case REMOVE_PREUTXO:
@@ -192,31 +219,35 @@ func compileMinus(sqlClient *sqlite.Client, sqlTx *sql.Tx, commandList *[]comman
 			}
 			// delete preOut
 			for _, tx := range *txList {
-				rawCmd := rawCommand{
+				*rawCommandList = append(*rawCommandList, rawCommand{
 					Type: RAW_DELETE_PREUTXO,
 					Stmt: txDeleteStmt,
 					item: sqlite.PreUtxo{
 						TxID: tx,
 					},
-				}
-				*rawCommandList = append(*rawCommandList, rawCmd)
+				})
+				*rawCommandList = append(*rawCommandList, rawCommand{
+					Type: RAW_DELETE_TX,
+					Stmt: contractDeleteStmt,
+					item: sqlite.Contract{
+						TxID: tx,
+					},
+				})
 			}
-			rawCmd2 := rawCommand{
+			*rawCommandList = append(*rawCommandList, rawCommand{
 				Type: RAW_DELETE_UTXO,
 				Stmt: utxoDeleteStmt,
 				item: sqlite.Utxo{
 					BlockHeight: removeHeight,
 				},
-			}
-			*rawCommandList = append(*rawCommandList, rawCmd2)
-			rawCmd3 := rawCommand{
+			})
+			*rawCommandList = append(*rawCommandList, rawCommand{
 				Type: RAW_DELETE_BLOCK,
 				Stmt: blockDeleteStmt,
 				item: sqlite.Block{
 					Height: removeHeight,
 				},
-			}
-			*rawCommandList = append(*rawCommandList, rawCmd3)
+			})
 		}
 	}
 	return

@@ -71,8 +71,8 @@ func initContractTable(db *sql.DB) (err error) {
 	creatTable := `
 	CREATE TABLE IF NOT EXISTS contract(
     "txid" TEXT PRIMARY KEY,
-    "contract_address" TEXT UNIQUE,
-    "contract_action" TEXT
+    "contract_address" TEXT,
+    "contract_action" INTEGER
 	);`
 	_, err = db.Exec(creatTable)
 	return err

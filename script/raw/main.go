@@ -58,8 +58,48 @@ func main() {
 	}}
 	println("Contract Action", our_chain_rpc.ContractNotExist, our_chain_rpc.ContractActionDeploy, our_chain_rpc.ContractActionCall)
 	contract := our_chain_rpc.ContractMessage{
-		Action:  our_chain_rpc.ContractActionDeploy,
-		Code:    "#include <ourcontract.h>\n#include <iostream>\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n#include <sys/wait.h>\n#include <unistd.h>\n\nextern \"C\" int contract_main(int argc, char **argv) {\n  // pure mode\n  if (!check_runtime_can_write_db()) {\n    std::cerr << \"runtime is pure mode\" << std::endl;\n    json j = state_read();\n    std::cerr << \"get state: \" << j.dump() << std::endl;\n    std::cerr << \"pre txid: \" << get_pre_txid() << std::endl;\n    // some operation\n    j.push_back(\"pure click: \" + std::to_string((size_t)j.size()));\n    state_write(j);\n    return 0;\n  }\n  // call contract state\n  if (state_exist()) {\n    json j = state_read();\n    std::cerr << \"get state: \" << j.dump() << std::endl;\n    std::cerr << \"pre txid: \" << get_pre_txid() << std::endl;\n    // some operation\n    j.push_back(\"more click: \" + std::to_string((size_t)j.size()));\n    state_write(j);\n    return 0;\n  }\n  // init state\n  std::cerr << \"read state error\" << std::endl;\n  std::cerr << \"pre txid: \" << get_pre_txid() << std::endl;\n  json j;\n  j.push_back(\"baby cute\");\n  j.push_back(1);\n  j.push_back(true);\n  state_write(j);\n  return 0;\n}\n",
+		Action: our_chain_rpc.ContractActionDeploy,
+		Code: `
+#include <ourcontract.h>
+#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
+extern "C" int contract_main(int argc, char **argv) {
+  // pure mode
+  if (!check_runtime_can_write_db()) {
+    std::cerr << "runtime is pure mode" << std::endl;
+    json j = state_read();
+    std::cerr << "get state: " << j.dump() << std::endl;
+    std::cerr << "pre txid: " << get_pre_txid() << std::endl;
+    // some operation
+    j.push_back("pure click: " + std::to_string((size_t)j.size()));
+    state_write(j);
+    return 0;
+  }
+  // call contract state
+  if (state_exist()) {
+    json j = state_read();
+    std::cerr << "get state: " << j.dump() << std::endl;
+    std::cerr << "pre txid: " << get_pre_txid() << std::endl;
+    // some operation
+    j.push_back("more click: " + std::to_string((size_t)j.size()));
+    state_write(j);
+    return 0;
+  }
+  // init state
+  std::cerr << "read state error" << std::endl;
+  std::cerr << "pre txid: " << get_pre_txid() << std::endl;
+  json j;
+  j.push_back("baby cute");
+  j.push_back(1);
+  j.push_back(true);
+  state_write(j);
+  return 0;
+}`,
 		Address: "",
 		Args:    []string{},
 	}

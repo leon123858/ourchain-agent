@@ -3,6 +3,7 @@ package sqlite
 import (
 	"database/sql"
 	"errors"
+	our_chain_rpc "github.com/leon123858/go-aid/service/rpc"
 )
 
 func BeginTx(client *Client) (tx *sql.Tx, err error) {
@@ -105,6 +106,9 @@ func ContractCreatePrepare(tx *sql.Tx) (stmt *sql.Stmt, err error) {
 }
 
 func ContractCreateExec(stmt *sql.Stmt, item Contract) (result sql.Result, err error) {
+	if item.ContractAction == our_chain_rpc.ContractNotExist {
+		return ExecPrepare(stmt, item.TxID, sql.NullString{}, item.ContractAction)
+	}
 	return ExecPrepare(stmt, item.TxID, item.ContractAddress, item.ContractAction)
 }
 

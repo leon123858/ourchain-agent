@@ -1,5 +1,7 @@
 package sqlite
 
+import our_chain_rpc "github.com/leon123858/go-aid/service/rpc"
+
 type Utxo struct {
 	ID          string // txid
 	Address     string
@@ -23,5 +25,5 @@ type PreUtxo struct {
 type Contract struct {
 	TxID            string
 	ContractAddress string
-	ContractAction  string
+	ContractAction  our_chain_rpc.ContractAction
 }

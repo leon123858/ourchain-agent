@@ -55,6 +55,8 @@ func addBlocksCoder(curLocalChain *localChain, rpc *OurChainRpc.Bitcoind, height
 			if err != nil {
 				return nil, err
 			}
+			// args: txid, action, contract
+			commandList = append(commandList, *newCommand(ADD_TX, tx, txInfo.Action, txInfo.Contract))
 			for _, vout := range txInfo.Vout {
 				if (vout.ScriptPubKey.Type == "pubkey" || vout.ScriptPubKey.Type == "pubkeyhash") && vout.ScriptPubKey.Addresses != nil {
 					if vout.Value > 0 {
