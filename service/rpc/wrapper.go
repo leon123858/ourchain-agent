@@ -15,5 +15,8 @@ func (b *Bitcoind) GetContractGeneralInterface(address string) (generalInterface
 		return
 	}
 	err = json.Unmarshal([]byte(result), &generalInterface)
+	if generalInterface.Protocol == "" || generalInterface.Version == "" {
+		err = errors.New("contract serialization error")
+	}
 	return
 }

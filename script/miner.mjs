@@ -10,13 +10,13 @@ async function getNewAddress() {
 }
 
 async function mineBlock(address) {
-	const path = address ? `http://${domain}/block/generate?address=${address}` : `http://${domain}/block/generate/`;
+    const path = address ? `http://${domain}/block/generate?address=${address}` : `http://${domain}/block/generate/`;
     return await fetch(path, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        timeout: 10*60*1000, // 10 minutes
+        timeout: 10 * 60 * 1000, // 10 minutes
     });
 }
 
@@ -35,8 +35,9 @@ async function main() {
             console.log(e);
         }
     }
+    // infinite loop
     while (true) {
-        if(address === "") {
+        if (address === "") {
             throw new Error("address is empty");
         }
         try {
