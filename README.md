@@ -4,7 +4,8 @@ aid server with ourchain
 
 ## How to use?
 
-read functional test in [test](./test) directory
+please refer to the following file:
+[api.md](./doc/api.md)
 
 ## How to use docker-compose to deploy?
 
