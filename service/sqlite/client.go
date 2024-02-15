@@ -173,3 +173,28 @@ func (client *Client) GetBlockTxList(height uint64) (*[]string, error) {
 	}
 	return &result, nil
 }
+
+// GetContractList get contract list by protocol,
+// when protocol is "undefined" mean all contract do not have general interface
+func (client *Client) GetContractList(protocol string) (*[]Contract, error) {
+	rows, err := client.Instance.Query("SELECT * FROM contract WHERE contract_protocol = ?", protocol)
+	if err != nil {
+		return &[]Contract{}, err
+	}
+	defer func(rows *sql.Rows) {
+		e := rows.Close()
+		if e != nil {
+			panic(e)
+		}
+	}(rows)
+	var result []Contract
+	for rows.Next() {
+		var contract Contract
+		err := rows.Scan(&contract.TxID, &contract.ContractAddress, &contract.ContractAction, &contract.ContractProtocol, &contract.ContractVersion)
+		if err != nil {
+			return &result, err
+		}
+		result = append(result, contract)
+	}
+	return &result, nil
+}

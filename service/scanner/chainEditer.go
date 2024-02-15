@@ -55,8 +55,18 @@ func addBlocksCoder(curLocalChain *localChain, rpc *OurChainRpc.Bitcoind, height
 			if err != nil {
 				return nil, err
 			}
-			// args: txid, action, contract
-			commandList = append(commandList, *newCommand(ADD_TX, tx, txInfo.Action, txInfo.Contract))
+			if txInfo.Action == OurChainRpc.ContractActionDeploy {
+				// get contract general interface
+				var generalInterface OurChainRpc.ContractGeneralInterface
+				generalInterface, err = rpc.GetContractGeneralInterface(txInfo.Contract)
+				if err != nil {
+					// args: txid, action, contract, undefined, undefined
+					commandList = append(commandList, *newCommand(ADD_TX, tx, txInfo.Action, txInfo.Contract, "undefined", "undefined"))
+				} else {
+					// args: txid, action, contract, protocol, version
+					commandList = append(commandList, *newCommand(ADD_TX, tx, txInfo.Action, txInfo.Contract, generalInterface.Protocol, generalInterface.Version))
+				}
+			}
 			for _, vout := range txInfo.Vout {
 				if (vout.ScriptPubKey.Type == "pubkey" || vout.ScriptPubKey.Type == "pubkeyhash") && vout.ScriptPubKey.Addresses != nil {
 					if vout.Value > 0 {

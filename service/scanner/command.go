@@ -117,9 +117,11 @@ func compileAdd(sqlTx *sql.Tx, commandList *[]command) (rawCommandList *[]rawCom
 				Type: RAW_ADD_TX,
 				Stmt: contractCreateStmt,
 				item: sqlite.Contract{
-					TxID:            cmd.args[0].(string),
-					ContractAction:  cmd.args[1].(our_chain_rpc.ContractAction),
-					ContractAddress: cmd.args[2].(string),
+					TxID:             cmd.args[0].(string),
+					ContractAction:   cmd.args[1].(our_chain_rpc.ContractAction),
+					ContractAddress:  cmd.args[2].(string),
+					ContractProtocol: cmd.args[3].(string),
+					ContractVersion:  cmd.args[4].(string),
 				},
 			}
 			*rawCommandList = append(*rawCommandList, rawCmd)

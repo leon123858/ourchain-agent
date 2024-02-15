@@ -23,7 +23,9 @@ type PreUtxo struct {
 }
 
 type Contract struct {
-	TxID            string
-	ContractAddress string
-	ContractAction  our_chain_rpc.ContractAction
+	TxID             string
+	ContractAddress  string
+	ContractAction   our_chain_rpc.ContractAction
+	ContractProtocol string
+	ContractVersion  string
 }

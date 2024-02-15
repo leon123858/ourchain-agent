@@ -39,6 +39,7 @@ type abstractChain interface {
 	GetName() (result ChainType)
 	SyncLength(remote abstractChain) (err error)
 	GetUnspent(addressList []string, confirm int) (result *[]ourchainrpc.Unspent, err error)
+	GetContractList(protocol string) (result *[]sqlite.Contract, err error)
 }
 
 type remoteChain struct {
@@ -47,10 +48,18 @@ type remoteChain struct {
 	Client *ourchainrpc.Bitcoind
 }
 
+func (chain *remoteChain) GetContractList(string) (result *[]sqlite.Contract, err error) {
+	panic("remote chain should not get contract list")
+}
+
 type localChain struct {
 	Chain  []block
 	Length uint64
 	Client *sqlite.Client
+}
+
+func (chain *localChain) GetContractList(protocol string) (result *[]sqlite.Contract, err error) {
+	return chain.Client.GetContractList(protocol)
 }
 
 func newChain(client clientWrapper) (result abstractChain) {

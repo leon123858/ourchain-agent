@@ -142,3 +142,8 @@ type ContractMessage struct {
 	Address string         `json:"address"`
 	Args    []string       `json:"args"`
 }
+
+type ContractGeneralInterface struct {
+	Protocol string `json:"protocol"`
+	Version  string `json:"version"`
+}

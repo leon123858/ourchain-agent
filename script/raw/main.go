@@ -36,6 +36,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	if len(*unspentList) == 0 {
+		unspentList, _ = scanner.ListUnspent(chain, &db, []string{}, 2)
+	}
 	fee := 0.001
 	var unspent our_chain_rpc.Unspent
 	for _, item := range *unspentList {

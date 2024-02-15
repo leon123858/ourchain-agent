@@ -100,3 +100,18 @@ func TestClient_GetPreUtxo(t *testing.T) {
 
 	tearDown(client)
 }
+
+func TestClient_GetContractList(t *testing.T) {
+	client := setUp()
+
+	var err error
+	// get first block info and get error because of no data
+	contracts, err := client.GetContractList("undefined")
+	if err != nil {
+		t.Fatal("should not error when no data")
+	}
+	assert.Equal(t, len(*contracts), 0)
+	// insert data
+
+	tearDown(client)
+}

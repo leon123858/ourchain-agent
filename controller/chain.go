@@ -21,6 +21,15 @@ func customResponseHandler(ctx echo.Context, err error, data interface{}) error 
 
 func GenerateChainGetController(dto RepositoryDTO, which string) echo.HandlerFunc {
 	switch which {
+	case "getContract":
+		return func(ctx echo.Context) error {
+			protocol := ctx.QueryParam("protocol")
+			if protocol == "" {
+				protocol = "undefined"
+			}
+			list, err := scanner.ListContract(dto.Chain, dto.Database, protocol)
+			return customResponseHandler(ctx, err, list)
+		}
 	case "getUnspent":
 		return func(ctx echo.Context) error {
 			address := ctx.QueryParam("address")

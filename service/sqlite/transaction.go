@@ -102,14 +102,14 @@ func TxDeleteExec(stmt *sql.Stmt, item PreUtxo) (result sql.Result, err error) {
 }
 
 func ContractCreatePrepare(tx *sql.Tx) (stmt *sql.Stmt, err error) {
-	return PrepareTx(tx, "INSERT INTO contract(txid, contract_address, contract_action) VALUES(?, ?, ?)")
+	return PrepareTx(tx, "INSERT INTO contract(txid, contract_address, contract_action, contract_protocol, contract_version) VALUES(?, ?, ?, ?, ?)")
 }
 
 func ContractCreateExec(stmt *sql.Stmt, item Contract) (result sql.Result, err error) {
 	if item.ContractAction == our_chain_rpc.ContractNotExist {
-		return ExecPrepare(stmt, item.TxID, sql.NullString{}, item.ContractAction)
+		return ExecPrepare(stmt, item.TxID, sql.NullString{}, item.ContractAction, sql.NullString{}, sql.NullString{})
 	}
-	return ExecPrepare(stmt, item.TxID, item.ContractAddress, item.ContractAction)
+	return ExecPrepare(stmt, item.TxID, item.ContractAddress, item.ContractAction, item.ContractProtocol, item.ContractVersion)
 }
 
 func ContractDeletePrepare(tx *sql.Tx) (stmt *sql.Stmt, err error) {
