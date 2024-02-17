@@ -169,7 +169,9 @@ func (b *Bitcoind) GenerateToAddress(count uint64, address string) (blockHash []
 func (b *Bitcoind) CreateRawTransaction(input []TxInput, output []TxOutput, contract ContractMessage) (result RawTransactionCreateResult, err error) {
 	// create a  map like {"address": "amount"}
 	outputMap := make(map[string]string)
-	outputMap[output[0].Address] = fmt.Sprintf("%.8f", output[0].Amount)
+	for i := 0; i < len(output); i++ {
+		outputMap[output[i].Address] = fmt.Sprintf("%.8f", output[i].Amount)
+	}
 	rpcResponse, err := b.client.call("createrawtransaction", []interface{}{input, outputMap, contract})
 	if err = handleError(err, &rpcResponse); err != nil {
 		return
