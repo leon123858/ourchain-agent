@@ -1,4 +1,4 @@
-# go-aid
+# ourchain-agent
 
 aid server with ourchain
 
