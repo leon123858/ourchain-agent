@@ -9,7 +9,7 @@ please refer to the following file:
 
 ## How to use docker-compose to deploy?
 
-quick start:
+quick start (only for x86_64, other platform please create own image):
 
 1. run `docker volume create node_data` start disk volume
 2. run `docker-compose up -d` in this project root directory
