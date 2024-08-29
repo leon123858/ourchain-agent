@@ -1,6 +1,6 @@
-# go-aid
+# ourchain-agent
 
-aid server with ourchain
+agent with ourchain
 
 ## How to use?
 
