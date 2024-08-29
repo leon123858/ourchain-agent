@@ -12,8 +12,8 @@ build:
 
 deploy:
 	docker buildx build --no-cache -t go-aid -f ./Dockerfile --platform linux/amd64 .
-	docker tag go-aid leon1234858/go-aid
-	docker push leon1234858/go-aid
+	docker tag go-aid leon1234858/ourchain-agent
+	docker push leon1234858/ourchain-agent
 
 test:
 	make unit_test

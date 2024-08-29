@@ -8,7 +8,7 @@ services:
       my_network:
         ipv4_address: 172.16.238.9
   webapi: # web api 8080
-    image: leon1234858/go-aid
+    image: leon1234858/ourchain-agent
     ports:
       - "8080:8080"
     networks:
@@ -18,6 +18,8 @@ services:
       APP_HOST: 172.16.238.11
   chain: # chain server connected by web api
     image: leon1234858/our-chain
+    ports:
+      - "8332:8332"
     networks:
       my_network:
         ipv4_address: 172.16.238.11
