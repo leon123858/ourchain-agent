@@ -6,9 +6,22 @@ import (
 
 func TestBitcoind_GetContractGeneralInterface(t *testing.T) {
 	chain := initChain()
-	generalInterface, err := chain.GetContractGeneralInterface("2f6088e76e21457261d5a059825b37186f6cccbd48d8cc160de182c83a081ebf")
+	// deploy a contract
+	contractAddr, err := chain.DeployContract("/root/Desktop/ourchain/sample.cpp")
 	if err != nil {
 		t.Fatal(err)
+		return
+	}
+	// mine a block
+	_, err = chain.GenerateBlock(1)
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	generalInterface, err := chain.GetContractGeneralInterface(contractAddr)
+	if err != nil {
+		t.Fatal(err)
+		return
 	}
 	t.Logf("Info: %+v", generalInterface)
 	print("protocol: ", generalInterface.Protocol, "\n")

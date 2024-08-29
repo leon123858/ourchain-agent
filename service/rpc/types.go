@@ -144,6 +144,6 @@ type ContractMessage struct {
 }
 
 type ContractGeneralInterface struct {
-	Protocol string `json:"protocol"`
+	Protocol string `json:"name"`
 	Version  string `json:"version"`
 }
